@@ -28,7 +28,7 @@ class DataBaseSourceImpl : DataBaseSource {
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        log("getBreedById FAILED", "Failed to read value.", error.toException())
+                        log("getCountryById FAILED", "Failed to read value.", error.toException())
                         continuation.resume(Country())
                         FirebaseCrashlytics.getInstance().recordException(Throwable(error.toException()))
                     }

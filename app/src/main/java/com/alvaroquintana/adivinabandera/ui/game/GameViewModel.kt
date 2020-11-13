@@ -4,13 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.alvaroquintana.adivinabandera.common.ScopedViewModel
 import com.alvaroquintana.adivinabandera.managers.Analytics
-import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_BREED
+import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.usecases.GetCountryById
 import kotlinx.coroutines.launch
 
 class GameViewModel(private val getCountryById: GetCountryById) : ScopedViewModel() {
-    private var randomBreeds = mutableListOf<Int>()
+    private var randomCountries = mutableListOf<Int>()
     private lateinit var country: Country
 
     private val _question = MutableLiveData<String>()
@@ -35,32 +35,32 @@ class GameViewModel(private val getCountryById: GetCountryById) : ScopedViewMode
             _progress.value = UiModel.Loading(true)
 
             /** Generate question */
-            val numRandomMain = generateRandomWithExcusion(0, TOTAL_BREED, *randomBreeds.toIntArray())
-            randomBreeds.add(numRandomMain)
+            val numRandomMain = generateRandomWithExcusion(0, TOTAL_COUNTRIES, *randomCountries.toIntArray())
+            randomCountries.add(numRandomMain)
 
-            country = getBreed(numRandomMain)
+            country = getCountry(numRandomMain)
 
             /** Generate responses */
             val numRandomMainPosition = generateRandomWithExcusion(0, 3)
 
-            val numRandomOption1 = generateRandomWithExcusion(1, TOTAL_BREED, numRandomMain)
-            val dogOption1: Country = getBreed(numRandomOption1)
+            val numRandomOption1 = generateRandomWithExcusion(1, TOTAL_COUNTRIES, numRandomMain)
+            val option1: Country = getCountry(numRandomOption1)
             val numRandomPosition1 = generateRandomWithExcusion(0, 3, numRandomMainPosition)
 
-            val numRandomOption2 = generateRandomWithExcusion(1, TOTAL_BREED, numRandomMain, numRandomOption1)
-            val dogOption2: Country = getBreed(numRandomOption2)
+            val numRandomOption2 = generateRandomWithExcusion(1, TOTAL_COUNTRIES, numRandomMain, numRandomOption1)
+            val option2: Country = getCountry(numRandomOption2)
             val numRandomPosition2 = generateRandomWithExcusion(0, 3, numRandomMainPosition, numRandomPosition1)
 
-            val numRandomOption3 = generateRandomWithExcusion(1, TOTAL_BREED, numRandomMain, numRandomOption1, numRandomOption2)
-            val dogOption3: Country = getBreed(numRandomOption3)
+            val numRandomOption3 = generateRandomWithExcusion(1, TOTAL_COUNTRIES, numRandomMain, numRandomOption1, numRandomOption2)
+            val option3: Country = getCountry(numRandomOption3)
             val numRandomPosition3 = generateRandomWithExcusion(0, 3, numRandomMainPosition, numRandomPosition1, numRandomPosition2)
 
             /** Save value */
             val optionList = mutableListOf("", "", "", "")
             optionList[numRandomMainPosition] = country.alpha2Code!!
-            optionList[numRandomPosition1] = dogOption1.alpha2Code!!
-            optionList[numRandomPosition2] = dogOption2.alpha2Code!!
-            optionList[numRandomPosition3] = dogOption3.alpha2Code!!
+            optionList[numRandomPosition1] = option1.alpha2Code!!
+            optionList[numRandomPosition2] = option2.alpha2Code!!
+            optionList[numRandomPosition3] = option3.alpha2Code!!
 
             _responseOptions.value = optionList
             _question.value = country.icon
@@ -68,7 +68,7 @@ class GameViewModel(private val getCountryById: GetCountryById) : ScopedViewMode
         }
     }
 
-    private suspend fun getBreed(id: Int): Country {
+    private suspend fun getCountry(id: Int): Country {
         return getCountryById.invoke(id)
     }
 

@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Guess breed</string>
-    <string name="game_screen_title">Guess dog breed</string>
+    <string name="app_name">Guess flag</string>
     <string name="resultado_screen_title">Final result</string>
     <string name="ranking_screen_title">Ranking</string>
     <string name="share_message">\nMy score is %d, can you get over me?\n\n</string>
@@ -25,7 +24,7 @@
     <string name="game_title">game title</string>
     <string name="loading_image">loading</string>
     <string name="back">back</string>
-    <string name="dog_game_image">image to guess</string>
+    <string name="game_image">image to guess</string>
     <string name="score_image_background">background</string>
     <string name="locale">en</string>
 </resources>

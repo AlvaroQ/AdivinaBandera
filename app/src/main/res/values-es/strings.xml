@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Adivina Perro</string>
-    <string name="game_screen_title">Adivina raza</string>
+    <string name="app_name">Adivina bandera</string>
     <string name="resultado_screen_title">Resultado final</string>
     <string name="ranking_screen_title">Ranking</string>
     <string name="share_message">\nHice una puntuación de %d ¿eres capaz de superarlo?\n\n</string>
@@ -24,7 +23,7 @@
     <string name="game_title">Título del juego</string>
     <string name="loading_image">imagen de cargando</string>
     <string name="back">Volver</string>
-    <string name="dog_game_image">Imagen de la raza de perro</string>
+    <string name="game_image">Imagen para adivinar</string>
     <string name="best_score">Mejores puntuaciones</string>
     <string name="score_image_background">fondo de la clasificación</string>
     <string name="locale">es</string>

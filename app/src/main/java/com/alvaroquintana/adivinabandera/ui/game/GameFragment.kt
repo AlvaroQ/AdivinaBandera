@@ -19,7 +19,7 @@ import com.alvaroquintana.adivinabandera.common.traslationAnimationFadeIn
 import com.alvaroquintana.adivinabandera.databinding.GameFragmentBinding
 import com.alvaroquintana.adivinabandera.ui.result.ResultActivity
 import com.alvaroquintana.adivinabandera.utils.Constants.POINTS
-import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_BREED
+import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.adivinabandera.utils.glideLoadBase64
 import com.alvaroquintana.adivinabandera.utils.glideLoadingGif
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
@@ -164,9 +164,9 @@ class GameFragment : Fragment() {
         (activity as GameActivity).writeDeleteLife(life)
     }
 
-    private fun drawCorrectResponse(dogNameCorrect: String) {
+    private fun drawCorrectResponse(countryNameCorrect: String) {
         when {
-            btnOptionOne.text == dogNameCorrect -> {
+            btnOptionOne.text == countryNameCorrect -> {
                 btnOptionOne.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
@@ -194,7 +194,7 @@ class GameFragment : Fragment() {
                     }
                 }
             }
-            btnOptionTwo.text == dogNameCorrect -> {
+            btnOptionTwo.text == countryNameCorrect -> {
                 btnOptionTwo.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
@@ -222,7 +222,7 @@ class GameFragment : Fragment() {
                     }
                 }
             }
-            btnOptionThree.text == dogNameCorrect -> {
+            btnOptionThree.text == countryNameCorrect -> {
                 btnOptionThree.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
@@ -250,7 +250,7 @@ class GameFragment : Fragment() {
                     }
                 }
             }
-            btnOptionFour.text == dogNameCorrect -> {
+            btnOptionFour.text == countryNameCorrect -> {
                 btnOptionFour.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
@@ -292,7 +292,7 @@ class GameFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             delay(TimeUnit.MILLISECONDS.toMillis(1000))
             withContext(Dispatchers.Main) {
-                if(stage > TOTAL_BREED || life < 1) gameViewModel.navigateToResult(points.toString())
+                if(stage > TOTAL_COUNTRIES || life < 1) gameViewModel.navigateToResult(points.toString())
                 else gameViewModel.generateNewStage()
             }
         }

@@ -16,8 +16,8 @@ buildscript {
             'compileSdk'            : 30,
             'minSdk'                : 23,
             'targetSdk'             : 30,
-            'name'                  : '1.0.0',
-            'code'                  : 1,
+            'name'                  : '1.0.1',
+            'code'                  : 2,
             'buildtoolsVersion'     : '30.0.2',
     ]
     ext.libsversions = [
@@ -30,7 +30,7 @@ buildscript {
 
     dependencies {
         classpath "com.google.gms:google-services:${libsversions.google_services_version}"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.3.0'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.4.1'
         classpath "com.android.tools.build:gradle:${libsversions.gradle_version}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${libsversions.kotlin_version}"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.3.1"
