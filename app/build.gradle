@@ -17,13 +17,21 @@ android {
         versionName versions.name
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    signingConfigs {
+        config {
+            keyAlias ADIVINABANDERA_RELEASE_KEY_ALIAS
+            keyPassword ADIVINABANDERA_RELEASE_KEY_PASSWORD
+            storeFile file(ADIVINABANDERA_RELEASE_STORE_FILE)
+            storePassword ADIVINABANDERA_RELEASE_STORE_PASSWORD
+        }
+    }
     buildTypes {
         debug {
             jniDebuggable true
             testCoverageEnabled true
             debuggable true
             minifyEnabled false
+            signingConfig signingConfigs.config
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
@@ -32,6 +40,7 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable false
+            signingConfig signingConfigs.config
             firebaseCrashlytics {
                 mappingFileUploadEnabled true
             }
