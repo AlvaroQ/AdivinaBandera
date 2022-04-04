@@ -35,8 +35,8 @@ class FirestoreDataSourceImpl(private val database: FirebaseFirestore) : Firesto
         return suspendCancellableCoroutine { continuation ->
             val ref = database
                 .collection(COLLECTION_RANKING)
-                .orderBy("points", Query.Direction.DESCENDING)
-                .limit(8)
+                .orderBy("score", Query.Direction.DESCENDING)
+                .limit(20)
 
             ref.get()
                 .addOnSuccessListener {
@@ -53,7 +53,7 @@ class FirestoreDataSourceImpl(private val database: FirebaseFirestore) : Firesto
         return suspendCancellableCoroutine { continuation ->
             val ref = database
                 .collection(COLLECTION_RANKING)
-                .orderBy("points", Query.Direction.DESCENDING)
+                .orderBy("score", Query.Direction.DESCENDING)
                 .limit(limit)
 
             ref.get()

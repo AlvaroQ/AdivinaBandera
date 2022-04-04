@@ -129,7 +129,7 @@ class ResultFragment : Fragment() {
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setContentView(R.layout.dialog_save_record)
             btnSubmit.setSafeOnClickListener {
-                resultViewModel.saveTopScore(User(editTextWorldRecord.text.toString(), points))
+                resultViewModel.saveTopScore(User(editTextWorldRecord.text.toString(), points, points.toInt()))
                 dismiss()
             }
             show()
