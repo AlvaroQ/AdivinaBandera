@@ -50,22 +50,30 @@ class GameActivity : BaseActivity() {
 
     fun writeDeleteLife(life: Int) {
         when(life) {
-            2 -> {
-                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+            3 -> {
                 lifeFirst.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+                lifeThree.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+            }
+            2 -> {
+                lifeFirst.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+                lifeThree.setImageDrawable(getDrawable(R.drawable.ic_life_off))
             }
             1 -> {
                 lifeSecond.startAnimation(AnimationUtils.loadAnimation(this, R.anim.scale_xy_collapse))
 
-                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_off))
                 lifeFirst.setImageDrawable(getDrawable(R.drawable.ic_life_on))
+                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_off))
+                lifeThree.setImageDrawable(getDrawable(R.drawable.ic_life_off))
             }
             0 -> {
                 lifeFirst.startAnimation(AnimationUtils.loadAnimation(this, R.anim.scale_xy_collapse))
 
                 // GAME OVER
-                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_off))
                 lifeFirst.setImageDrawable(getDrawable(R.drawable.ic_life_off))
+                lifeSecond.setImageDrawable(getDrawable(R.drawable.ic_life_off))
+                lifeThree.setImageDrawable(getDrawable(R.drawable.ic_life_off))
             }
         }
     }

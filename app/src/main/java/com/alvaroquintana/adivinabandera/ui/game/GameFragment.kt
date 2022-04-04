@@ -41,7 +41,7 @@ class GameFragment : Fragment() {
     lateinit var btnOptionThree: TextView
     lateinit var btnOptionFour: TextView
 
-    private var life: Int = 2
+    private var life: Int = 3
     private var stage: Int = 1
     private var points: Int = 0
 

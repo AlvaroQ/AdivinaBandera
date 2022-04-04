@@ -69,6 +69,16 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/lifeFirst"/>
+
+                <ImageView
+                    android:id="@+id/lifeThree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_life_on"
+                    android:contentDescription="@string/life"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/lifeSecond"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </RelativeLayout>
     </androidx.appcompat.widget.Toolbar>
