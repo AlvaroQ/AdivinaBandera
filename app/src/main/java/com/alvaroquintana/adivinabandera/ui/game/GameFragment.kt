@@ -1,12 +1,16 @@
 package com.alvaroquintana.adivinabandera.ui.game
 
+import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -23,6 +27,7 @@ import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.adivinabandera.utils.glideLoadBase64
 import com.alvaroquintana.adivinabandera.utils.glideLoadingGif
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
+import kotlinx.android.synthetic.main.dialog_extra_life.*
 import kotlinx.coroutines.*
 import org.koin.android.scope.lifecycleScope
 import org.koin.android.viewmodel.scope.viewModel
@@ -33,6 +38,7 @@ import java.util.concurrent.TimeUnit
 class GameFragment : Fragment() {
     private val gameViewModel: GameViewModel by lifecycleScope.viewModel(this)
     private lateinit var binding: GameFragmentBinding
+    private var extraLife = false
 
     lateinit var imageLoading: ImageView
     lateinit var imageQuiz: ImageView
@@ -90,9 +96,22 @@ class GameFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         gameViewModel.navigation.observe(viewLifecycleOwner, Observer(::navigate))
-        gameViewModel.progress.observe(viewLifecycleOwner, Observer(::updateProgress))
         gameViewModel.question.observe(viewLifecycleOwner, Observer(::drawQuestionImage))
         gameViewModel.responseOptions.observe(viewLifecycleOwner, Observer(::drawOptionsResponse))
+        gameViewModel.showingAds.observe(viewLifecycleOwner, Observer(::loadAdAndProgress))
+        gameViewModel.progress.observe(viewLifecycleOwner, Observer(::loadAdAndProgress))
+    }
+
+    private fun loadAdAndProgress(model: GameViewModel.UiModel?) {
+        when(model) {
+            is GameViewModel.UiModel.ShowBannerAd -> {
+                (activity as GameActivity).showBannerAd(model.show)
+            }
+            is GameViewModel.UiModel.ShowReewardAd -> {
+                (activity as GameActivity).showRewardedAd(model.show)
+            }
+            is GameViewModel.UiModel.Loading -> updateProgress(model.show)
+        }
     }
 
     private fun navigate(navigation: GameViewModel.Navigation?) {
@@ -100,11 +119,43 @@ class GameFragment : Fragment() {
             is GameViewModel.Navigation.Result -> {
                 activity?.startActivity<ResultActivity> { putExtra(POINTS, points) }
             }
+            is GameViewModel.Navigation.ExtraLifeDialog -> {
+                showExtraLifeDialog()
+            }
         }
     }
 
-    private fun updateProgress(model: GameViewModel.UiModel?) {
-        if (model is GameViewModel.UiModel.Loading && model.show) {
+    private fun showExtraLifeDialog() {
+        Dialog(requireContext()).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setContentView(R.layout.dialog_extra_life)
+            btnNo.setSafeOnClickListener {
+                dismiss()
+                gameViewModel.navigateToResult(points.toString())
+            }
+            btnYes.setSafeOnClickListener {
+                dismiss()
+                gameViewModel.showRewardedAd()
+                addExtraLife()
+            }
+            show()
+        }
+    }
+
+    private fun addExtraLife() {
+        CoroutineScope(Dispatchers.IO).launch {
+            if(life == 0) {
+                delay(TimeUnit.MILLISECONDS.toMillis(2500))
+                life = 1
+                (activity as GameActivity).writeDeleteLife(1)
+                gameViewModel.generateNewStage()
+            }
+        }
+    }
+
+    private fun updateProgress(isShowing: Boolean) {
+        if (isShowing) {
             glideLoadingGif(activity as GameActivity, imageLoading)
             imageLoading.visibility = View.VISIBLE
 
@@ -288,12 +339,21 @@ class GameFragment : Fragment() {
         btnOptionFour.isClickable = isEnable
     }
 
+
+
     private fun nextScreen() {
         CoroutineScope(Dispatchers.IO).launch {
             delay(TimeUnit.MILLISECONDS.toMillis(1000))
             withContext(Dispatchers.Main) {
-                if(stage > TOTAL_COUNTRIES || life < 1) gameViewModel.navigateToResult(points.toString())
-                else gameViewModel.generateNewStage()
+                if(life < 1 && !extraLife && stage < TOTAL_COUNTRIES) {
+                    extraLife = true
+                    gameViewModel.navigateToExtraLifeDialog()
+                } else if(stage > (TOTAL_COUNTRIES + 1) || life < 1) {
+                    gameViewModel.navigateToResult(points.toString())
+                } else {
+                    gameViewModel.generateNewStage()
+                    if(stage != 0 && stage % 10 == 0) gameViewModel.showRewardedAd()
+                }
             }
         }
     }

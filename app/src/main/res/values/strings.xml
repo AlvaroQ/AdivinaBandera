@@ -61,4 +61,9 @@
     <string name="area">Area: %s m²</string>
     <string name="prefix">Prefix: %s</string>
 
+    <!-- Dialog screen extra life -->
+    <string name="dialog_extra_life_title">Extra life</string>
+    <string name="dialog_extra_life_description">Do you want an extra life watching an ad?</string>
+    <string name="dialog_extra_life_btn_yes">Yes</string>
+    <string name="dialog_extra_life_btn_no">No</string>
 </resources>

@@ -49,7 +49,6 @@
     <string name="not_exist">No existe</string>
     <string name="read_info">Información</string>
 
-
     <!-- Info screen -->
     <string name="info_title">Información</string>
     <string name="region">Region: %s</string>
@@ -61,4 +60,10 @@
     <string name="population">Población: %s habitantes</string>
     <string name="area">Área: %s m²</string>
     <string name="prefix">Prefijo: %s</string>
+
+    <!-- Dialog extra life -->
+    <string name="dialog_extra_life_title">Vida extra</string>
+    <string name="dialog_extra_life_description">¿Quiere una vida extra viendo un anuncio?</string>
+    <string name="dialog_extra_life_btn_yes">Sí</string>
+    <string name="dialog_extra_life_btn_no">No</string>
 </resources>
