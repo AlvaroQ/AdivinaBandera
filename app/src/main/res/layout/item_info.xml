@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/itemContainer"
+    android:layout_marginTop="4dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="12dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/card_gradient"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/flagImage"
+            android:layout_width="120dp"
+            android:layout_height="80dp"
+            tools:src="@tools:sample/avatars"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+
+        <TextView
+            android:id="@+id/countryText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/flagImage"
+            app:layout_constraintBottom_toBottomOf="@id/flagImage"
+            app:layout_constraintStart_toEndOf="@id/flagImage"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="España"
+            android:textAppearance="@style/Bold.TextColor.Large"/>
+
+        <TextView
+            android:id="@+id/regionText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/flagImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="Region: Europe"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/capitalText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/regionText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="Capital: Madrid"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/currencyText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/capitalText"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:text="@string/currency"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/currencyIndexText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/capitalText"
+            app:layout_constraintStart_toEndOf="@id/currencyText"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="€ (Euro)"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/languageText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/currencyText"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:text="@string/language"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/languageIndexText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/currencyText"
+            app:layout_constraintStart_toEndOf="@id/languageText"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="Spanish (Español)"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/populationText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/languageText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="Población: 46.010.011 habitantes"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/areaText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/populationText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            tools:text="Extensión: 123.123.123 m2"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+        <TextView
+            android:id="@+id/phonePrefixText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/areaText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:paddingBottom="@dimen/activity_horizontal_margin"
+            tools:text="Prefijo: 34"
+            android:textAppearance="@style/Regular.TextColor.VerySmall"/>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

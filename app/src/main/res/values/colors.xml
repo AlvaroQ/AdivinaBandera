@@ -5,7 +5,7 @@
     <color name="colorPrimaryLight">#AF5E45</color>
     <color name="colorAccent">#FFC107</color>
     <color name="transparent">#00000000</color>
-
+    <color name="settongsIconColor">#000000</color>
 
     <color name="responseCorrect">#6600FF0B</color>
     <color name="responseFail">#66FF0000</color>

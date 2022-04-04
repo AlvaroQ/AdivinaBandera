@@ -18,7 +18,17 @@ class SelectViewModel : ScopedViewModel() {
         _navigation.value = Navigation.Game
     }
 
+    fun navigateToLearn() {
+        _navigation.value = Navigation.Info
+    }
+
+    fun navigateToSettings() {
+        _navigation.value = Navigation.Settings
+    }
+
     sealed class Navigation {
         object Game : Navigation()
+        object Info : Navigation()
+        object Settings : Navigation()
     }
 }

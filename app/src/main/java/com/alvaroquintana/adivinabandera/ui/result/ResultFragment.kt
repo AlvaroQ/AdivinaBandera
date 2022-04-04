@@ -21,10 +21,8 @@ import com.alvaroquintana.adivinabandera.common.startActivity
 import com.alvaroquintana.adivinabandera.databinding.ResultFragmentBinding
 import com.alvaroquintana.adivinabandera.ui.game.GameActivity
 import com.alvaroquintana.adivinabandera.ui.ranking.RankingActivity
+import com.alvaroquintana.adivinabandera.utils.*
 import com.alvaroquintana.adivinabandera.utils.Constants.POINTS
-import com.alvaroquintana.adivinabandera.utils.glideLoadingGif
-import com.alvaroquintana.adivinabandera.utils.log
-import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
 import com.alvaroquintana.domain.App
 import com.alvaroquintana.domain.User
 import kotlinx.android.synthetic.main.dialog_save_record.*
@@ -108,10 +106,10 @@ class ResultFragment : Fragment() {
 
     private fun navigate(navigation: ResultViewModel.Navigation?) {
         when (navigation) {
-            ResultViewModel.Navigation.Rate -> rateApp()
+            ResultViewModel.Navigation.Rate -> rateApp(requireContext())
             ResultViewModel.Navigation.Game -> activity?.startActivity<GameActivity> {}
             ResultViewModel.Navigation.Ranking -> activity?.startActivity<RankingActivity> {}
-            is ResultViewModel.Navigation.Share -> shareApp(navigation.points)
+            is ResultViewModel.Navigation.Share -> shareApp(requireContext(), navigation.points)
             is ResultViewModel.Navigation.Open -> openAppOnPlayStore(navigation.url)
             is ResultViewModel.Navigation.Dialog -> showEnterNameDialog(navigation.points)
         }
@@ -119,40 +117,9 @@ class ResultFragment : Fragment() {
 
     private fun openAppOnPlayStore(appPackageName: String) {
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(appPackageName)))
         } catch (notFoundException: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
-        }
-    }
-
-    private fun shareApp(points: Int) {
-        try {
-            val shareIntent = Intent(Intent.ACTION_SEND)
-            shareIntent.type = "text/plain"
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name))
-            var shareMessage = resources.getString(R.string.share_message, points)
-            shareMessage =
-                """
-                ${shareMessage}https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}
-                """.trimIndent()
-            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
-            startActivity(Intent.createChooser(shareIntent, getString(R.string.choose_one)))
-        } catch (e: Exception) {
-            log(getString(R.string.share), e.toString())
-        }
-    }
-
-    private fun rateApp() {
-        val uri: Uri = Uri.parse("market://details?id=${BuildConfig.APPLICATION_ID}")
-        val goToMarket = Intent(Intent.ACTION_VIEW, uri)
-        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or
-                Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
-                Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        try {
-            startActivity(goToMarket)
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW,
-                Uri.parse("http://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}")))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
         }
     }
 

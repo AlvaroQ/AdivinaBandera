@@ -9,7 +9,6 @@
         android:drawable="@drawable/btn_pressed"
         android:state_pressed="true" />
 
-    <item
-        android:drawable="@drawable/btn_normal" />
+    <item android:drawable="@drawable/btn_normal" />
 
 </selector>

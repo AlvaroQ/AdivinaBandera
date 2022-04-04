@@ -55,11 +55,9 @@
 
         <Button
             android:id="@+id/btnContinue"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
             android:layout_marginTop="50dp"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
             android:textAppearance="@style/Bold.TextColorLight.Large"
             app:layout_constraintTop_toBottomOf="@+id/textWorldRecord"
             app:layout_constraintStart_toStartOf="parent"
@@ -69,11 +67,9 @@
 
         <Button
             android:id="@+id/btnShare"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="10dp"
             android:textAppearance="@style/Bold.TextColorLight.Large"
             android:text="@string/share"
             android:background="@drawable/button"
@@ -83,11 +79,9 @@
 
         <Button
             android:id="@+id/btnRate"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="10dp"
             android:text="@string/rate_on_play_store"
             android:textAppearance="@style/Bold.TextColorLight.Large"
             android:background="@drawable/button"
@@ -97,11 +91,9 @@
 
         <Button
             android:id="@+id/btnRanking"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="10dp"
             android:text="@string/best_score"
             android:textAppearance="@style/Bold.TextColorLight.Large"
             android:background="@drawable/button"
