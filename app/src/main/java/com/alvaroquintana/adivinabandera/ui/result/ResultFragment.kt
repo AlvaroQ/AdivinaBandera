@@ -15,6 +15,7 @@ import android.view.Window
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.common.startActivity
@@ -46,7 +47,10 @@ class ResultFragment : Fragment() {
         binding = ResultFragmentBinding.inflate(inflater)
         val root = binding.root
 
-        MediaPlayer.create(context, R.raw.game_over).start()
+        if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sound", true)) {
+            MediaPlayer.create(context, R.raw.game_over).start()
+        }
+
         gamePoints = activity?.intent?.extras?.getInt(POINTS)!!
 
         val textResult: TextView = root.findViewById(R.id.textResult)

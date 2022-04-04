@@ -16,6 +16,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.common.startActivity
 import com.alvaroquintana.adivinabandera.common.traslationAnimation
@@ -221,26 +222,26 @@ class GameFragment : Fragment() {
                 btnOptionOne.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
-                        MediaPlayer.create(context, R.raw.success).start()
+                        soundSuccess()
                         points += 1
                     }
                     btnOptionTwo.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionTwo.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionThree.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionThree.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionFour.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionFour.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     else -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                     }
                 }
@@ -249,26 +250,26 @@ class GameFragment : Fragment() {
                 btnOptionTwo.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionOne.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionTwo.isSelected -> {
-                        MediaPlayer.create(context, R.raw.success).start()
+                        soundSuccess()
                         points += 1
                     }
                     btnOptionThree.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionThree.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionFour.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionFour.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     else -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                     }
                 }
@@ -277,26 +278,26 @@ class GameFragment : Fragment() {
                 btnOptionThree.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionOne.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionTwo.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionTwo.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionThree.isSelected -> {
-                        MediaPlayer.create(context, R.raw.success).start()
+                        soundSuccess()
                         points += 1
                     }
                     btnOptionFour.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionFour.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     else -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                     }
                 }
@@ -305,26 +306,26 @@ class GameFragment : Fragment() {
                 btnOptionFour.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_correct)
                 when {
                     btnOptionOne.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionOne.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionTwo.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionTwo.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionThree.isSelected -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                         btnOptionThree.background =  ContextCompat.getDrawable(requireContext(), R.drawable.btn_wrong)
                     }
                     btnOptionFour.isSelected -> {
-                        MediaPlayer.create(context, R.raw.success).start()
+                        soundSuccess()
                         points += 1
                     }
                     else -> {
-                        MediaPlayer.create(context, R.raw.fail).start()
+                        soundFail()
                         deleteLife()
                     }
                 }
@@ -339,7 +340,17 @@ class GameFragment : Fragment() {
         btnOptionFour.isClickable = isEnable
     }
 
+    private fun soundFail() {
+        if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sound", true)) {
+            MediaPlayer.create(context, R.raw.fail).start()
+        }
+    }
 
+    private fun soundSuccess() {
+        if(PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sound", true)) {
+            MediaPlayer.create(context, R.raw.success).start()
+        }
+    }
 
     private fun nextScreen() {
         CoroutineScope(Dispatchers.IO).launch {
