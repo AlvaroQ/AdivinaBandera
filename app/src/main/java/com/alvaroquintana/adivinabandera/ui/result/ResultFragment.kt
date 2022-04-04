@@ -107,7 +107,7 @@ class ResultFragment : Fragment() {
     private fun navigate(navigation: ResultViewModel.Navigation?) {
         when (navigation) {
             ResultViewModel.Navigation.Rate -> rateApp(requireContext())
-            ResultViewModel.Navigation.Game -> activity?.startActivity<GameActivity> {}
+            ResultViewModel.Navigation.Game -> activity?.finishAfterTransition()
             ResultViewModel.Navigation.Ranking -> activity?.startActivity<RankingActivity> {}
             is ResultViewModel.Navigation.Share -> shareApp(requireContext(), navigation.points)
             is ResultViewModel.Navigation.Open -> openAppOnPlayStore(navigation.url)
