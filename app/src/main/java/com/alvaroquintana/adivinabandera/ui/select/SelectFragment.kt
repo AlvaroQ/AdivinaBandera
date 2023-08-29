@@ -14,12 +14,11 @@ import com.alvaroquintana.adivinabandera.ui.game.GameActivity
 import com.alvaroquintana.adivinabandera.ui.info.InfoActivity
 import com.alvaroquintana.adivinabandera.ui.settings.SettingsActivity
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SelectFragment : Fragment() {
     private lateinit var binding: SelectFragmentBinding
-    private val selectViewModel: SelectViewModel by lifecycleScope.viewModel(this)
+    private val selectViewModel: SelectViewModel by viewModel()
 
     companion object {
         fun newInstance() = SelectFragment()
@@ -46,7 +45,7 @@ class SelectFragment : Fragment() {
         selectViewModel.navigation.observe(viewLifecycleOwner, Observer(::navigate))
     }
 
-    private fun navigate(navigation: SelectViewModel.Navigation?) {
+    private fun navigate(navigation: SelectViewModel.Navigation) {
         when (navigation) {
             SelectViewModel.Navigation.Game -> { activity?.startActivity<GameActivity> {} }
             SelectViewModel.Navigation.Info -> { activity?.startActivity<InfoActivity> {} }

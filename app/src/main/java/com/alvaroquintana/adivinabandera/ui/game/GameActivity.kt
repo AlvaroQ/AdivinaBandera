@@ -3,6 +3,7 @@ package com.alvaroquintana.adivinabandera.ui.game
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import com.alvaroquintana.adivinabandera.R
@@ -11,6 +12,8 @@ import com.alvaroquintana.adivinabandera.common.startActivity
 import com.alvaroquintana.adivinabandera.managers.Analytics
 import com.alvaroquintana.adivinabandera.ui.select.SelectActivity
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
+import com.alvaroquintana.adivinabandera.utils.showBanner
+import com.alvaroquintana.adivinabandera.utils.showBonificado
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
@@ -23,7 +26,7 @@ import kotlinx.android.synthetic.main.game_activity.*
 
 
 class GameActivity : BaseActivity() {
-    private lateinit var rewardedAd: RewardedAd
+    private var rewardedAd: RewardedAd? = null
     private lateinit var activity: Activity
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +39,20 @@ class GameActivity : BaseActivity() {
                 .commitNow()
         }
         activity = this
+
+        MobileAds.initialize(this)
+        RewardedAd.load(this, getString(R.string.BONIFICADO_GAME), AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                Log.d("GameActivity", adError.toString())
+                FirebaseCrashlytics.getInstance().recordException(Throwable(adError.message))
+                rewardedAd = null
+            }
+
+            override fun onAdLoaded(ad: RewardedAd) {
+                Log.d("GameActivity", "Ad was loaded.")
+                rewardedAd = ad
+            }
+        })
 
         btnBack.setSafeOnClickListener {
             startActivity<SelectActivity> {
@@ -81,28 +98,10 @@ class GameActivity : BaseActivity() {
     }
 
     fun showBannerAd(show: Boolean){
-        if(show) {
-            MobileAds.initialize(this)
-            val adRequest = AdRequest.Builder().build()
-            adViewGame.loadAd(adRequest)
-        } else {
-            adViewGame.visibility = View.GONE
-        }
+        showBanner(show, adViewGame)
     }
 
     fun showRewardedAd(show: Boolean){
-        if(show) {
-            rewardedAd = RewardedAd(this, getString(R.string.BONIFICADO_GAME))
-            val adLoadCallback: RewardedAdLoadCallback = object : RewardedAdLoadCallback() {
-                override fun onRewardedAdLoaded() {
-                    rewardedAd.show(activity, null)
-                }
-
-                override fun onRewardedAdFailedToLoad(adError: LoadAdError) {
-                    FirebaseCrashlytics.getInstance().recordException(Throwable(adError.message))
-                }
-            }
-            rewardedAd.loadAd(AdRequest.Builder().build(), adLoadCallback)
-        }
+        showBonificado(this, show, rewardedAd)
     }
 }

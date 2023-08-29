@@ -8,11 +8,15 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.R
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.rewarded.RewardedAd
 
 
 fun openAppOnPlayStore(context: Context) {
@@ -87,5 +91,24 @@ fun Activity.screenOrientationPortrait(){
         ActivityInfo.SCREEN_ORIENTATION_BEHIND
     } else {
         ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+}
+fun showBanner(show: Boolean, adView: AdView){
+    if(show) {
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+    } else {
+        adView.visibility = View.GONE
+    }
+}
+fun showBonificado(activity: Activity, show: Boolean, rewardedAd: RewardedAd?) {
+    if(show) {
+        rewardedAd?.let { ad ->
+            ad.show(activity) { rewardItem ->
+                Log.d("loadBonificado", "User earned the reward. rewardAmount=$rewardItem.amount, rewardType=$rewardItem.type")
+            }
+        } ?: run {
+            Log.d("loadBonificado", "The rewarded ad wasn't ready yet.")
+        }
     }
 }

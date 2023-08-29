@@ -9,12 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alvaroquintana.adivinabandera.common.startActivity
-import com.alvaroquintana.adivinabandera.ui.info.InfoActivity
 import com.alvaroquintana.adivinabandera.databinding.InfoFragmentBinding
 import com.alvaroquintana.adivinabandera.ui.select.SelectActivity
 import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
@@ -25,7 +23,7 @@ import com.alvaroquintana.domain.Country
 
 class InfoFragment : Fragment() {
     private lateinit var binding: InfoFragmentBinding
-    private val infoViewModel: InfoViewModel by lifecycleScope.viewModel(this)
+    private val infoViewModel: InfoViewModel by viewModel()
     private var currentPage = 0
     private lateinit var scrollListener: RecyclerView.OnScrollListener
     lateinit var adapter: InfoListAdapter
@@ -54,7 +52,7 @@ class InfoFragment : Fragment() {
     private fun loadAdAndProgress(model: InfoViewModel.UiModel) {
         when(model) {
             is InfoViewModel.UiModel.ShowAd -> {
-                (activity as InfoActivity).showAd()
+                (activity as InfoActivity).showAd(true)
             }
             is InfoViewModel.UiModel.ShowReewardAd -> {
                 (activity as InfoActivity).showRewardedAd(model.show)

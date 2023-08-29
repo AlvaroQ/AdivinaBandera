@@ -16,24 +16,21 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
-import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.common.startActivity
 import com.alvaroquintana.adivinabandera.databinding.ResultFragmentBinding
-import com.alvaroquintana.adivinabandera.ui.game.GameActivity
 import com.alvaroquintana.adivinabandera.ui.ranking.RankingActivity
 import com.alvaroquintana.adivinabandera.utils.*
 import com.alvaroquintana.adivinabandera.utils.Constants.POINTS
 import com.alvaroquintana.domain.App
 import com.alvaroquintana.domain.User
 import kotlinx.android.synthetic.main.dialog_save_record.*
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class ResultFragment : Fragment() {
     private lateinit var binding: ResultFragmentBinding
-    private val resultViewModel: ResultViewModel by lifecycleScope.viewModel(this)
+    private val resultViewModel: ResultViewModel by viewModel()
     private var gamePoints = 0
 
     companion object {
@@ -108,7 +105,7 @@ class ResultFragment : Fragment() {
         }
     }
 
-    private fun navigate(navigation: ResultViewModel.Navigation?) {
+    private fun navigate(navigation: ResultViewModel.Navigation) {
         when (navigation) {
             ResultViewModel.Navigation.Rate -> rateApp(requireContext())
             ResultViewModel.Navigation.Game -> activity?.finishAfterTransition()

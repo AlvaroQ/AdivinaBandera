@@ -30,14 +30,13 @@ import com.alvaroquintana.adivinabandera.utils.glideLoadingGif
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
 import kotlinx.android.synthetic.main.dialog_extra_life.*
 import kotlinx.coroutines.*
-import org.koin.android.scope.lifecycleScope
-import org.koin.android.viewmodel.scope.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 
 class GameFragment : Fragment() {
-    private val gameViewModel: GameViewModel by lifecycleScope.viewModel(this)
+    private val gameViewModel: GameViewModel by viewModel()
     private lateinit var binding: GameFragmentBinding
     private var extraLife = false
 
@@ -103,7 +102,7 @@ class GameFragment : Fragment() {
         gameViewModel.progress.observe(viewLifecycleOwner, Observer(::loadAdAndProgress))
     }
 
-    private fun loadAdAndProgress(model: GameViewModel.UiModel?) {
+    private fun loadAdAndProgress(model: GameViewModel.UiModel) {
         when(model) {
             is GameViewModel.UiModel.ShowBannerAd -> {
                 (activity as GameActivity).showBannerAd(model.show)
@@ -115,7 +114,7 @@ class GameFragment : Fragment() {
         }
     }
 
-    private fun navigate(navigation: GameViewModel.Navigation?) {
+    private fun navigate(navigation: GameViewModel.Navigation) {
         when (navigation) {
             is GameViewModel.Navigation.Result -> {
                 activity?.startActivity<ResultActivity> { putExtra(POINTS, points) }
