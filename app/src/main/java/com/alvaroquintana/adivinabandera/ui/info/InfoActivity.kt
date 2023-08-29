@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.View
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.base.BaseActivity
+import com.alvaroquintana.adivinabandera.common.viewBinding
+import com.alvaroquintana.adivinabandera.databinding.InfoActivityBinding
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
 import com.alvaroquintana.adivinabandera.utils.showBanner
 import com.alvaroquintana.adivinabandera.utils.showBonificado
@@ -15,17 +17,15 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.android.synthetic.main.app_bar_layout.*
-import kotlinx.android.synthetic.main.game_activity.adViewGame
-import kotlinx.android.synthetic.main.info_activity.adViewInfo
 
 class InfoActivity : BaseActivity() {
+    private val infoBinding by viewBinding(InfoActivityBinding::inflate)
     private var rewardedAd: RewardedAd? = null
     private lateinit var activity: Activity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.info_activity)
+        setContentView(infoBinding.root)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -48,13 +48,13 @@ class InfoActivity : BaseActivity() {
             }
         })
 
-        btnBack.setSafeOnClickListener { finishAfterTransition() }
-        toolbarTitle.text = getString(R.string.info_title)
-        layoutLife.visibility = View.GONE
+        infoBinding.appBar.btnBack.setSafeOnClickListener { finishAfterTransition() }
+        infoBinding.appBar.toolbarTitle.text = getString(R.string.info_title)
+        infoBinding.appBar.layoutLife.visibility = View.GONE
     }
 
     fun showAd(show: Boolean){
-        showBanner(show, adViewInfo)
+        showBanner(show, infoBinding.adViewInfo)
     }
 
     fun showRewardedAd(show: Boolean){

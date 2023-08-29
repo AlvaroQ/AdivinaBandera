@@ -86,10 +86,6 @@ class GameViewModel(private val getCountryById: GetCountryById) : ScopedViewMode
         _navigation.value = Navigation.Result
     }
 
-    fun navigateToExtraLifeDialog() {
-        _navigation.value = Navigation.ExtraLifeDialog
-    }
-
     fun getCode2CountryCorrect() : String? {
         return country.alpha2Code
     }
@@ -110,6 +106,5 @@ class GameViewModel(private val getCountryById: GetCountryById) : ScopedViewMode
 
     sealed class Navigation {
         object Result : Navigation()
-        object ExtraLifeDialog : Navigation()
     }
 }

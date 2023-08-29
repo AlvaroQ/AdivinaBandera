@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'// Added Firebase Crashlytics plugin.
@@ -68,27 +67,23 @@ android {
     }
 }
 
+configurations.configureEach {
+    exclude group: 'com.google.android.gms', module: 'play-services-safetynet'
+}
+
 dependencies {
     implementation project(":data")
     implementation project(":domain")
     implementation project(":usecases")
 
-    // Koin
     implementation "io.insert-koin:koin-android:${libsversions.koin_version}"
     implementation "com.google.android.gms:play-services-ads:21.5.0"
-
 
     implementation androidLibs.values()
     implementation androidKtxLibs.values()
     implementation firebaseLibs.values()
     implementation kotlinLibs.values()
     implementation libs.values()
-    implementation androidKaptLibs.values()
-
-    testImplementation testLibs.values()
-    testImplementation androidxTestLibs.values()
-    androidTestImplementation androidTestLibs.values()
-
 }
 
 // KEYS ADMOB TEST

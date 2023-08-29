@@ -9,8 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.LayoutRes
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import com.alvaroquintana.adivinabandera.R
 import kotlin.properties.Delegates
 
@@ -69,3 +71,9 @@ fun View.traslationAnimation() {
 fun View.traslationAnimationFadeIn() {
     this.animate().alpha(1f).setInterpolator(AccelerateDecelerateInterpolator()).duration = 100
 }
+
+inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
+    crossinline bindingInflater: (LayoutInflater) -> T) =
+    lazy(LazyThreadSafetyMode.NONE) {
+        bindingInflater.invoke(layoutInflater)
+    }

@@ -1,10 +1,8 @@
 package com.alvaroquintana.adivinabandera.ui.game
 
 import android.app.Dialog
-import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +11,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -21,6 +20,7 @@ import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.common.startActivity
 import com.alvaroquintana.adivinabandera.common.traslationAnimation
 import com.alvaroquintana.adivinabandera.common.traslationAnimationFadeIn
+import com.alvaroquintana.adivinabandera.databinding.DialogExtraLifeBinding
 import com.alvaroquintana.adivinabandera.databinding.GameFragmentBinding
 import com.alvaroquintana.adivinabandera.ui.result.ResultActivity
 import com.alvaroquintana.adivinabandera.utils.Constants.POINTS
@@ -28,7 +28,6 @@ import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.adivinabandera.utils.glideLoadBase64
 import com.alvaroquintana.adivinabandera.utils.glideLoadingGif
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
-import kotlinx.android.synthetic.main.dialog_extra_life.*
 import kotlinx.coroutines.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
@@ -40,12 +39,12 @@ class GameFragment : Fragment() {
     private lateinit var binding: GameFragmentBinding
     private var extraLife = false
 
-    lateinit var imageLoading: ImageView
-    lateinit var imageQuiz: ImageView
-    lateinit var btnOptionOne: TextView
-    lateinit var btnOptionTwo: TextView
-    lateinit var btnOptionThree: TextView
-    lateinit var btnOptionFour: TextView
+    private lateinit var imageLoading: ImageView
+    private lateinit var imageQuiz: ImageView
+    private lateinit var btnOptionOne: TextView
+    private lateinit var btnOptionTwo: TextView
+    private lateinit var btnOptionThree: TextView
+    private lateinit var btnOptionFour: TextView
 
     private var life: Int = 3
     private var stage: Int = 1
@@ -58,8 +57,7 @@ class GameFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        savedInstanceState: Bundle?): View {
 
         binding = GameFragmentBinding.inflate(inflater)
         val root = binding.root
@@ -119,38 +117,6 @@ class GameFragment : Fragment() {
             is GameViewModel.Navigation.Result -> {
                 activity?.startActivity<ResultActivity> { putExtra(POINTS, points) }
             }
-            is GameViewModel.Navigation.ExtraLifeDialog -> {
-                showExtraLifeDialog()
-            }
-        }
-    }
-
-    private fun showExtraLifeDialog() {
-        Dialog(requireContext()).apply {
-            requestWindowFeature(Window.FEATURE_NO_TITLE)
-            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setContentView(R.layout.dialog_extra_life)
-            btnNo.setSafeOnClickListener {
-                dismiss()
-                gameViewModel.navigateToResult(points.toString())
-            }
-            btnYes.setSafeOnClickListener {
-                dismiss()
-                gameViewModel.showRewardedAd()
-                addExtraLife()
-            }
-            show()
-        }
-    }
-
-    private fun addExtraLife() {
-        CoroutineScope(Dispatchers.IO).launch {
-            if(life == 0) {
-                delay(TimeUnit.MILLISECONDS.toMillis(2500))
-                life = 1
-                (activity as GameActivity).writeDeleteLife(1)
-                gameViewModel.generateNewStage()
-            }
         }
     }
 
@@ -168,10 +134,10 @@ class GameFragment : Fragment() {
         } else {
             imageLoading.visibility = View.GONE
 
-            btnOptionOne.background = context?.getDrawable(R.drawable.button)
-            btnOptionTwo.background = context?.getDrawable(R.drawable.button)
-            btnOptionThree.background = context?.getDrawable(R.drawable.button)
-            btnOptionFour.background = context?.getDrawable(R.drawable.button)
+            btnOptionOne.background = AppCompatResources.getDrawable(requireContext(), R.drawable.button)
+            btnOptionTwo.background = AppCompatResources.getDrawable(requireContext(), R.drawable.button)
+            btnOptionThree.background = AppCompatResources.getDrawable(requireContext(), R.drawable.button)
+            btnOptionFour.background = AppCompatResources.getDrawable(requireContext(), R.drawable.button)
 
             enableBtn(true)
             (activity as GameActivity).writeStage(stage)
@@ -355,14 +321,11 @@ class GameFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             delay(TimeUnit.MILLISECONDS.toMillis(1000))
             withContext(Dispatchers.Main) {
-                if(life < 1 && !extraLife && stage < TOTAL_COUNTRIES) {
-                    extraLife = true
-                    gameViewModel.navigateToExtraLifeDialog()
-                } else if(stage > (TOTAL_COUNTRIES + 1) || life < 1) {
+                if(stage > (TOTAL_COUNTRIES + 1) || life < 1) {
                     gameViewModel.navigateToResult(points.toString())
                 } else {
                     gameViewModel.generateNewStage()
-                    if(stage != 0 && stage % 10 == 0) gameViewModel.showRewardedAd()
+                    if(stage != 0 && stage % 7 == 0) gameViewModel.showRewardedAd()
                 }
             }
         }

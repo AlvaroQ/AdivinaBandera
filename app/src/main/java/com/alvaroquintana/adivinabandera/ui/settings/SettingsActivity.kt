@@ -5,15 +5,17 @@ import android.view.MenuItem
 import android.view.View
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.base.BaseActivity
+import com.alvaroquintana.adivinabandera.common.viewBinding
+import com.alvaroquintana.adivinabandera.databinding.SettingsActivityBinding
 import com.alvaroquintana.adivinabandera.utils.setSafeOnClickListener
-import kotlinx.android.synthetic.main.app_bar_layout.*
 
 
 class SettingsActivity : BaseActivity() {
+    private val binding by viewBinding(SettingsActivityBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.settings_activity)
+        setContentView(binding.root)
         setupToolbar()
         supportFragmentManager
                 .beginTransaction()
@@ -33,8 +35,8 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun setupToolbar() {
-        toolbarTitle.text = getString(R.string.settings)
-        layoutLife.visibility = View.GONE
-        btnBack.setSafeOnClickListener { finishAfterTransition() }
+        binding.appBar.toolbarTitle.text = getString(R.string.settings)
+        binding.appBar.layoutLife.visibility = View.GONE
+        binding.appBar.btnBack.setSafeOnClickListener { finishAfterTransition() }
     }
 }

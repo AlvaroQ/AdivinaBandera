@@ -11,9 +11,7 @@ import com.alvaroquintana.adivinabandera.ui.select.SelectFragment
 import com.alvaroquintana.adivinabandera.ui.select.SelectViewModel
 import com.alvaroquintana.data.datasource.DataBaseSource
 import com.alvaroquintana.adivinabandera.datasource.DataBaseSourceImpl
-import com.alvaroquintana.adivinabandera.ui.info.InfoFragment
 import com.alvaroquintana.adivinabandera.ui.info.InfoViewModel
-import com.alvaroquintana.adivinabandera.ui.ranking.RankingFragment
 import com.alvaroquintana.adivinabandera.ui.ranking.RankingViewModel
 import com.alvaroquintana.data.repository.AppsRecommendedRepository
 import com.alvaroquintana.data.repository.CountryRepository
@@ -27,18 +25,14 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.koin.core.module.dsl.factoryOf
 
 fun Application.initDI() {
     startKoin {
         androidLogger()
         androidContext(this@initDI)
-        koin.loadModules(listOf(
-            appModule,
-            dataModule,
-            scopesModule
-        ))
+        modules(appModule, dataModule, scopesModule)
     }
 }
 
@@ -50,31 +44,22 @@ private val appModule = module {
 }
 
 val dataModule = module {
-    factory { CountryRepository(get()) }
-    factory { AppsRecommendedRepository(get()) }
-    factory { RankingRepository(get()) }
+    factoryOf(::CountryRepository)
+    factoryOf(::AppsRecommendedRepository)
+    factoryOf(::RankingRepository)
 }
 
 private val scopesModule = module {
-    scope(named<SelectFragment>()) {
-        viewModel { SelectViewModel() }
-    }
-    scope(named<GameFragment>()) {
-        viewModel { GameViewModel(get()) }
-        scoped { GetCountryById(get()) }
-    }
-    scope(named<ResultFragment>()) {
-        viewModel { ResultViewModel(get(), get(), get()) }
-        scoped { GetRecordScore(get()) }
-        scoped { GetAppsRecommended(get()) }
-        scoped { SaveTopScore(get()) }
-    }
-    scope(named<RankingFragment>()) {
-        viewModel { RankingViewModel(get()) }
-        scoped { GetRankingScore(get()) }
-    }
-    scope(named<InfoFragment>()) {
-        viewModel { InfoViewModel(get()) }
-        scoped { GetCountryList(get()) }
-    }
+    viewModel { SelectViewModel() }
+    viewModel { GameViewModel(get()) }
+    viewModel { ResultViewModel(get(), get(), get()) }
+    viewModel { RankingViewModel(get()) }
+    viewModel { InfoViewModel(get()) }
+
+    factory { GetCountryById(get()) }
+    factory { GetRecordScore(get()) }
+    factory { GetAppsRecommended(get()) }
+    factory { SaveTopScore(get()) }
+    factory { GetRankingScore(get()) }
+    factory { GetCountryList(get()) }
 }

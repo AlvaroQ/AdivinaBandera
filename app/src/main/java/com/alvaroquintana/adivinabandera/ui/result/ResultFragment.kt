@@ -18,13 +18,13 @@ import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.common.startActivity
+import com.alvaroquintana.adivinabandera.databinding.DialogSaveRecordBinding
 import com.alvaroquintana.adivinabandera.databinding.ResultFragmentBinding
 import com.alvaroquintana.adivinabandera.ui.ranking.RankingActivity
 import com.alvaroquintana.adivinabandera.utils.*
 import com.alvaroquintana.adivinabandera.utils.Constants.POINTS
 import com.alvaroquintana.domain.App
 import com.alvaroquintana.domain.User
-import kotlinx.android.synthetic.main.dialog_save_record.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
@@ -125,12 +125,15 @@ class ResultFragment : Fragment() {
     }
 
     private fun showEnterNameDialog(points: String) {
+        lateinit var dialogBinding: DialogSaveRecordBinding
+
         Dialog(requireContext()).apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setContentView(R.layout.dialog_save_record)
-            btnSubmit.setSafeOnClickListener {
-                resultViewModel.saveTopScore(User(editTextWorldRecord.text.toString(), points, points.toInt()))
+            dialogBinding = DialogSaveRecordBinding.inflate(layoutInflater)
+            setContentView(dialogBinding.root)
+            dialogBinding.btnSubmit.setSafeOnClickListener {
+                resultViewModel.saveTopScore(User(dialogBinding.editTextWorldRecord.text.toString(), points, points.toInt()))
                 dismiss()
             }
             show()
