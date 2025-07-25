@@ -70,9 +70,18 @@ class DataBaseSourceImpl : DataBaseSource {
                 .addValueEventListener(object : ValueEventListener {
 
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        var value = dataSnapshot.getValue<MutableList<App>>()
-                        if(value == null) value = mutableListOf()
-                        continuation.resume(value.filter { !it.url!!.contains(BuildConfig.APPLICATION_ID) }.toMutableList())
+                        try {
+                            val appList = mutableListOf<App>()
+                            if (dataSnapshot.hasChildren()) {
+                                for (snapshot in dataSnapshot.children) {
+                                    val app = snapshot.getValue(App::class.java)
+                                    if (app != null) appList.add(app)
+                                }
+                            }
+                            continuation.resume(appList)
+                        } catch (e: Exception) {
+                            continuation.resumeWith(Result.failure(e))
+                        }
                     }
 
                     override fun onCancelled(error: DatabaseError) {

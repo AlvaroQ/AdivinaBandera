@@ -9,16 +9,16 @@ buildscript {
             'applicationId': "com.alvaroquintana.adivinabandera"
     ]
     ext.versions = [
-            'compileSdk'            : 33,
+            'compileSdk'            : 36,
             'minSdk'                : 23,
-            'targetSdk'             : 33,
-            'name'                  : '1.0.5',
-            'code'                  : 7,
+            'targetSdk'             : 36,
+            'name'                  : '1.0.6',
+            'code'                  : 8,
             'buildtoolsVersion'     : '30.0.2',
     ]
     ext.libsversions = [
             'kotlin_version'         : '1.7.21',
-            'gradle_version'         : '7.4.0',
+            'gradle_version'         : '8.11.1',
             'koin_version'           : '3.2.2',
             'preference_version'     : '1.1.1',
             'google_services_version': '4.3.15'

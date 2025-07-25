@@ -62,12 +62,12 @@ abstract class BaseActivity(var uiContext: CoroutineContext = Dispatchers.Main) 
                     // Sign in success, update UI with the signed-in user's information
                     log(tag, "signInAnonymously:success")
                     val user = auth.currentUser
-                    updateUI(user)
+                    FirebaseCrashlytics.getInstance().setUserId(user?.uid!!)
+                    log(tag, "updateUI, you are login in")
                 } else {
                     // If sign in fails, display a message to the user.
                     log(tag, "signInAnonymously:failure", task.exception)
                     Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
-                    updateUI(null)
                 }
             }
     }
