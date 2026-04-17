@@ -1,5 +1,13 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+include ':data'
 include ':usecases'
 include ':domain'
-include ':data'
 include ':app'
 rootProject.name = "AdivinaBandera"

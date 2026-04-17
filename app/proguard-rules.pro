@@ -16,38 +16,17 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# Add this global rule
+# Keep metadata used by Kotlin/reflective serializers where needed.
 -keepattributes Signature
 -keepattributes *Annotation*
 -keepattributes EnclosingMethod
 -keepattributes InnerClasses
 
-# For using GSON @Expose annotation
--keepattributes *Annotation*
--dontwarn sun.misc.**
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
+# Firebase Realtime Database deserializes these models reflectively.
+-keep class com.alvaroquintana.domain.Country { *; }
+-keep class com.alvaroquintana.domain.Currency { *; }
+-keep class com.alvaroquintana.domain.Language { *; }
 
-# Application classes that will be serialized/deserialized over Gson
--keepclassmembers class com.alvaroquintana.domain.* { *; }
--keep class com.alvaroquintana.domain.* { *; }
-
--ignorewarnings
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn javax.annotation.**
--dontwarn org.conscrypt.**
--dontwarn com.squareup.okhttp.**
--dontnote junit.framework.**
--dontnote junit.runner.**
--dontwarn android.test.**
--dontwarn android.support.test.**
--dontwarn org.junit.**
--dontwarn org.hamcrest.**
--dontwarn com.squareup.javawriter.JavaWriter
--dontwarn org.mockito.**
-
-# Crashlitics
--keepattributes SourceFile,LineNumberTable        # Keep file names and line numbers.
--keep public class * extends java.lang.Exception  # Optional: Keep custom exceptions.
+# Crashlytics needs line tables + mapping; avoid leaking real source file names.
+-keepattributes LineNumberTable
+-renamesourcefileattribute SourceFile

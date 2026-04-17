@@ -1,6 +1,6 @@
 package com.alvaroquintana.data.repository
 
-sealed class RepositoryException(message: String? = null) : Throwable(message) {
-    object DataNotFoundException : RepositoryException()
-    object NoConnectionException : RepositoryException()
+sealed class RepositoryException(message: String) : Exception(message) {
+    class DataNotFoundException(message: String = "Data not found") : RepositoryException(message)
+    class NoConnectionException(message: String = "No connection") : RepositoryException(message)
 }

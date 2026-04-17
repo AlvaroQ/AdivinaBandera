@@ -5,6 +5,7 @@ import com.alvaroquintana.domain.User
 
 class GetRankingScore(private val rankingRepository: RankingRepository) {
 
-    suspend fun invoke(): MutableList<User> = rankingRepository.getRanking()
+    suspend fun invoke(gameMode: String = "Classic"): MutableList<User> =
+        rankingRepository.getRanking(gameMode)
 
 }

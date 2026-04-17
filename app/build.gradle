@@ -1,23 +1,24 @@
-
-
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'androidx.navigation.safeargs.kotlin'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'// Added Firebase Crashlytics plugin.
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+}
 
 android {
-    compileSdkVersion versions.compileSdk
+    compileSdk 36
 
     defaultConfig {
-        applicationId names.applicationId
-        minSdkVersion versions.minSdk
-        targetSdkVersion versions.targetSdk
-        versionCode versions.code
-        versionName versions.name
-        multiDexEnabled true
+        applicationId "com.alvaroquintana.adivinabandera"
+        minSdk 23
+        targetSdk 36
+        versionCode 9
+        versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     signingConfigs {
         config {
             keyAlias ADIVINABANDERA_RELEASE_KEY_ALIAS
@@ -31,11 +32,11 @@ android {
             jniDebuggable true
             debuggable true
             minifyEnabled false
-            signingConfig signingConfigs.config
             firebaseCrashlytics {
                 mappingFileUploadEnabled false
             }
 
+            resValue 'string', 'admob_id', getAdmobAppId()
             resValue 'string', 'BANNER_GAME', getAdmobBannerTestId()
             resValue 'string', 'BANNER_RANKING', getAdmobBannerTestId()
             resValue 'string', 'BANNER_INFO', getAdmobBannerTestId()
@@ -45,13 +46,16 @@ android {
         }
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable false
+            ndk { debugSymbolLevel 'FULL' }
             signingConfig signingConfigs.config
             firebaseCrashlytics {
                 mappingFileUploadEnabled true
             }
 
+            resValue 'string', 'admob_id', getAdmobAppId()
             resValue 'string', 'BANNER_GAME', getAdmobBannerGameId()
             resValue 'string', 'BANNER_RANKING', getAdmobBannerRankingId()
             resValue 'string', 'BANNER_INFO', getAdmobBannerInfoId()
@@ -59,20 +63,25 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
-        viewBinding true
+        buildConfig true
+        compose true
+        resValues true
     }
     namespace 'com.alvaroquintana.adivinabandera'
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
-configurations.configureEach {
-    exclude group: 'com.google.android.gms', module: 'play-services-safetynet'
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }
 
 dependencies {
@@ -80,22 +89,90 @@ dependencies {
     implementation project(":domain")
     implementation project(":usecases")
 
-    implementation(libs.glide)
+    // Kotlin
+    implementation libs.kotlin.stdlib
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
 
-    implementation "io.insert-koin:koin-android:${libsversions.koin_version}"
-    implementation "com.google.android.gms:play-services-ads:21.5.0"
+    // AndroidX
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.datastore.preferences
+    implementation libs.androidx.work.runtime.ktx
 
-    implementation androidLibs.values()
-    implementation androidKtxLibs.values()
-    implementation firebaseLibs.values()
-    implementation kotlinLibs.values()
-    implementation libs.values()
+    // Firebase
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.database
+    implementation libs.firebase.firestore
+    implementation libs.firebase.analytics
+    implementation libs.firebase.auth
+    implementation libs.firebase.crashlytics
+    implementation libs.guava.listenablefuture
+
+    // DI
+    implementation platform(libs.koin.bom)
+    implementation libs.koin.android
+    implementation libs.koin.androidx.compose
+    implementation libs.koin.compose.viewmodel
+
+    // Images
+    implementation libs.coil.compose
+    implementation libs.coil.network.okhttp
+
+    // Ads
+    implementation libs.play.services.ads
+    implementation libs.ump
+
+    // Room
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    implementation libs.androidx.material3.window.size.class1
+    ksp libs.androidx.room.compiler
+
+    // Jetpack Compose
+    implementation platform(libs.compose.bom)
+    implementation libs.compose.material3
+    implementation libs.compose.material3.window.size
+    implementation libs.compose.material.icons.extended
+    implementation libs.compose.ui
+    implementation libs.compose.ui.tooling.preview
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.runtime.compose
+    implementation libs.androidx.navigation.compose
+    debugImplementation libs.compose.ui.tooling
+
+    // Serialization (for type-safe navigation)
+    implementation libs.kotlinx.serialization.json
+
+    // Testing
+    testImplementation libs.junit
+    testImplementation libs.mockk
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.turbine
+
+    // Android Instrumented Testing
+    androidTestImplementation platform(libs.compose.bom)
+    androidTestImplementation libs.compose.ui.test.junit4
+    androidTestImplementation libs.test.ext.junit
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.test.runner
+    androidTestImplementation libs.test.rules
+    androidTestImplementation libs.kotlinx.coroutines.test
+    debugImplementation libs.compose.ui.test.manifest
 }
+
+configurations.configureEach {
+    exclude group: 'com.google.android.gms', module: 'play-services-safetynet'
+}
+
+import groovy.xml.XmlParser
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // KEYS ADMOB TEST
 def getAdmobBannerTestId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
+        def stringsFile = file("./secrets/secrets.xml")
         return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_test_id' }.text()
     } catch(e) {
         println(e)
@@ -104,7 +181,7 @@ def getAdmobBannerTestId() {
 }
 def getAdmobBonificadoTestId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
+        def stringsFile = file("./secrets/secrets.xml")
         return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_bonificado_test_id' }.text()
     } catch(e) {
         println(e)
@@ -115,7 +192,7 @@ def getAdmobBonificadoTestId() {
 // KEYS ADMOB PRODUCTION
 def getAdmobBannerGameId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
+        def stringsFile = file("./secrets/secrets.xml")
         return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_game' }.text()
     } catch(e) {
         println(e)
@@ -124,7 +201,7 @@ def getAdmobBannerGameId() {
 }
 def getAdmobBannerRankingId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
+        def stringsFile = file("./secrets/secrets.xml")
         return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_ranking' }.text()
     } catch(e) {
         println(e)
@@ -133,8 +210,8 @@ def getAdmobBannerRankingId() {
 }
 def getAdmobBannerInfoId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_ranking' }.text()
+        def stringsFile = file("./secrets/secrets.xml")
+        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_info' }.text()
     } catch(e) {
         println(e)
         return ""
@@ -142,8 +219,19 @@ def getAdmobBannerInfoId() {
 }
 def getAdmobBonificadoGameId() {
     try {
-        def stringsFile = file("./src/main/res/values/secrets.xml")
+        def stringsFile = file("./secrets/secrets.xml")
         return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_bonificado_game' }.text()
+    } catch(e) {
+        println(e)
+        return ""
+    }
+}
+
+// KEY ADMOB APP ID
+def getAdmobAppId() {
+    try {
+        def stringsFile = file("./secrets/secrets.xml")
+        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_id' }.text()
     } catch(e) {
         println(e)
         return ""

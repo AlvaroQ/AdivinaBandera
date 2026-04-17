@@ -1,40 +1,49 @@
 package com.alvaroquintana.adivinabandera.datasource
 
-import  arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING
-import com.alvaroquintana.adivinabandera.utils.log
+import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING_CAPITAL_BY_COUNTRY
+import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING_CAPITAL_BY_FLAG
 import com.alvaroquintana.data.datasource.FirestoreDataSource
-import com.alvaroquintana.data.repository.RepositoryException
 import com.alvaroquintana.domain.User
+import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.toObjects
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class FirestoreDataSourceImpl(private val database: FirebaseFirestore) : FirestoreDataSource {
+class FirestoreDataSourceImpl : FirestoreDataSource {
 
-    override suspend fun addRecord(user: User): Either<RepositoryException, User> {
+    private val database = Firebase.firestore
+
+    private fun collectionForMode(gameMode: String): String = when (gameMode) {
+        "CapitalByFlag" -> COLLECTION_RANKING_CAPITAL_BY_FLAG
+        "CapitalByCountry" -> COLLECTION_RANKING_CAPITAL_BY_COUNTRY
+        "CurrencyDetective" -> "ranking-moneda"
+        "PopulationChallenge" -> "ranking-poblacion"
+        "WorldMix" -> "ranking-worldmix"
+        else -> COLLECTION_RANKING
+    }
+
+    override suspend fun addRecord(user: User, gameMode: String): Result<User> {
         return suspendCancellableCoroutine { continuation ->
-            database.collection(COLLECTION_RANKING)
+            database.collection(collectionForMode(gameMode))
                 .add(user)
                 .addOnSuccessListener {
-                    continuation.resume(user.right())
+                    continuation.resume(Result.success(user))
                 }
                 .addOnFailureListener {
-                    continuation.resume(RepositoryException.NoConnectionException.left())
-                    FirebaseCrashlytics.getInstance().recordException(Throwable(it.cause))
+                    FirebaseCrashlytics.getInstance().recordException(it)
+                    continuation.resume(Result.failure(it))
                 }
         }
     }
 
-    override suspend fun getRanking(): MutableList<User> {
+    override suspend fun getRanking(gameMode: String): MutableList<User> {
         return suspendCancellableCoroutine { continuation ->
             val ref = database
-                .collection(COLLECTION_RANKING)
+                .collection(collectionForMode(gameMode))
                 .orderBy("score", Query.Direction.DESCENDING)
                 .limit(20)
 
@@ -44,25 +53,28 @@ class FirestoreDataSourceImpl(private val database: FirebaseFirestore) : Firesto
                 }
                 .addOnFailureListener {
                     continuation.resume(mutableListOf())
-                    FirebaseCrashlytics.getInstance().recordException(Throwable(it.cause))
+                    FirebaseCrashlytics.getInstance().recordException(it)
                 }
         }
     }
 
-    override suspend fun getWorldRecords(limit: Long): String {
+    override suspend fun getWorldRecords(limit: Long, gameMode: String): String {
         return suspendCancellableCoroutine { continuation ->
             val ref = database
-                .collection(COLLECTION_RANKING)
+                .collection(collectionForMode(gameMode))
                 .orderBy("score", Query.Direction.DESCENDING)
                 .limit(limit)
 
             ref.get()
                 .addOnSuccessListener {
-                    continuation.resume(it.toObjects<User>().last().points.toString())
+                    val users = it.toObjects<User>()
+                    continuation.resume(
+                        if (users.isNotEmpty()) users.last().points else ""
+                    )
                 }
                 .addOnFailureListener {
                     continuation.resume("")
-                    FirebaseCrashlytics.getInstance().recordException(Throwable(it.cause))
+                    FirebaseCrashlytics.getInstance().recordException(it)
                 }
         }
     }

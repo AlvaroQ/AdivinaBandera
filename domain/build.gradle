@@ -1,10 +1,14 @@
-apply plugin: 'java-library'
-apply plugin: 'kotlin'
+plugins {
+    id 'java-library'
+    alias(libs.plugins.kotlin.jvm)
+}
 
 dependencies {
-    implementation kotlinLibs.values()
+    implementation libs.kotlin.stdlib
+
+    testImplementation libs.junit
 }
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }

@@ -1,11 +1,9 @@
 package com.alvaroquintana.data.datasource
 
-import arrow.core.Either
-import com.alvaroquintana.data.repository.RepositoryException
 import com.alvaroquintana.domain.User
 
 interface FirestoreDataSource {
-    suspend fun addRecord(user: User): Either<RepositoryException, User>
-    suspend fun getRanking(): MutableList<User>
-    suspend fun getWorldRecords(limit: Long): String
+    suspend fun addRecord(user: User, gameMode: String = "Classic"): Result<User>
+    suspend fun getRanking(gameMode: String = "Classic"): MutableList<User>
+    suspend fun getWorldRecords(limit: Long, gameMode: String = "Classic"): String
 }
