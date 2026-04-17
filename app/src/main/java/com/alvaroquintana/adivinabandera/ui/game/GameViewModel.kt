@@ -6,12 +6,18 @@ import com.alvaroquintana.adivinabandera.managers.Analytics
 import com.alvaroquintana.adivinabandera.managers.CountryMasteryManager
 import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
+import com.alvaroquintana.adivinabandera.managers.RegionalProgressionManager
 import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.challenge.ChallengeEvent
+import com.alvaroquintana.domain.CountrySubdivision
+import com.alvaroquintana.domain.isRegional
+import com.alvaroquintana.domain.regionalAlpha2
+import com.alvaroquintana.domain.toRouteString
 import com.alvaroquintana.usecases.GetCountryById
 import com.alvaroquintana.usecases.GetRandomCountries
+import com.alvaroquintana.usecases.GetSubdivisionsForCountry
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +30,6 @@ import kotlinx.coroutines.launch
 enum class MixQuestionType {
     FLAG_TO_COUNTRY,
     FLAG_TO_CAPITAL,
-    COUNTRY_TO_CAPITAL,
     CURRENCY_TO_COUNTRY,
     DEMONYM_TO_COUNTRY,
     LANGUAGE_TO_COUNTRY,
@@ -35,16 +40,20 @@ enum class MixQuestionType {
 class GameViewModel(
     private val getCountryById: GetCountryById,
     private val getRandomCountries: GetRandomCountries,
+    private val getSubdivisionsForCountry: GetSubdivisionsForCountry,
     private val dailyChallengeManager: DailyChallengeManager,
     private val progressionManager: ProgressionManager,
     val gameMode: GameMode = GameMode.Classic,
     private val countryMasteryManager: CountryMasteryManager,
+    private val regionalProgressionManager: RegionalProgressionManager,
     val forcedCountryPool: List<Int> = emptyList()
 ) : ViewModel() {
     private var randomCountries = mutableListOf<Int>()
     private lateinit var country: Country
     // For NEIGHBOR_CHALLENGE: stores the correct neighbor alpha2Code since country holds the "asked about" country
     private var neighborCorrectAlpha2: String = ""
+    private var subdivision: CountrySubdivision? = null
+    private val seenSubdivisionIds = mutableSetOf<String>()
 
     private val _question = MutableStateFlow("")
     val question: StateFlow<String> = _question.asStateFlow()
@@ -96,7 +105,7 @@ class GameViewModel(
         viewModelScope.launch {
             _progress.value = UiModel.Loading(true)
 
-            val isCapitalMode = gameMode == GameMode.CapitalByFlag || gameMode == GameMode.CapitalByCountry
+            val isCapitalMode = gameMode == GameMode.CapitalByFlag
             val isCurrencyMode = gameMode == GameMode.CurrencyDetective
             val isPopulationMode = gameMode == GameMode.PopulationChallenge
             val isWorldMixMode = gameMode == GameMode.WorldMix
@@ -131,6 +140,16 @@ class GameViewModel(
                 _responseOptions.tryEmit(optionList)
                 _question.value = ""
                 _progress.value = UiModel.Loading(false)
+                return@launch
+            }
+
+            if (gameMode.isRegional) {
+                val alpha2 = gameMode.regionalAlpha2
+                if (alpha2 != null) {
+                    generateSubdivisionStage(alpha2)
+                } else {
+                    _progress.value = UiModel.Loading(false)
+                }
                 return@launch
             }
 
@@ -225,6 +244,33 @@ class GameViewModel(
         }
     }
 
+    private suspend fun generateSubdivisionStage(alpha2: String) {
+        val pool = getSubdivisionsForCountry.invoke(alpha2)
+        if (pool.size < 4) {
+            _progress.value = UiModel.Loading(false)
+            return
+        }
+
+        val available = pool.filter { it.id !in seenSubdivisionIds }
+        val correct = (if (available.isNotEmpty()) available else pool).random()
+        seenSubdivisionIds.add(correct.id)
+        val wrongPool = pool.filter { it.id != correct.id }.shuffled().take(3)
+        subdivision = correct
+
+        val correctPos = generateRandomWithExclusion(0, 3)
+        val positions = (0..3).filter { it != correctPos }
+        val options = MutableList(4) { "" }
+        options[correctPos] = correct.name
+        wrongPool.forEachIndexed { idx, sub -> options[positions[idx]] = sub.name }
+
+        _question.value = correct.flagUrl
+        _countryName.value = ""
+        _currencyQuestion.value = ""
+        _mixQuestionText.value = ""
+        _responseOptions.tryEmit(options)
+        _progress.value = UiModel.Loading(false)
+    }
+
     private suspend fun generateWorldMixStage() {
         // Pick a random question type, with fallback to FLAG_TO_COUNTRY on failure
         val allTypes = MixQuestionType.entries.toList()
@@ -298,39 +344,6 @@ class GameViewModel(
                 _mixQuestionText.value = ""
                 _question.value = c.icon
                 _countryName.value = ""
-                _currencyQuestion.value = ""
-                _responseOptions.tryEmit(optionList)
-                _progress.value = UiModel.Loading(false)
-                true
-            }
-
-            MixQuestionType.COUNTRY_TO_CAPITAL -> {
-                var id: Int
-                var c: Country
-                var attempts = 0
-                do {
-                    id = generateRandomWithExclusion(0, TOTAL_COUNTRIES, *randomCountries.toIntArray())
-                    c = getCountry(id)
-                    attempts++
-                } while (c.capital.isBlank() && attempts < 30)
-                if (c.capital.isBlank()) return false
-
-                randomCountries.add(id)
-                country = c
-
-                val pos = generateRandomWithExclusion(0, 3)
-                val (o1, o2, o3, p1, p2, p3) = pickThreeWrongOptions(id, pos) { true }
-
-                val optionList = mutableListOf("", "", "", "")
-                optionList[pos] = c.capital
-                optionList[p1] = o1.capital.ifBlank { o1.name }
-                optionList[p2] = o2.capital.ifBlank { o2.name }
-                optionList[p3] = o3.capital.ifBlank { o3.name }
-
-                _currentMixType.value = MixQuestionType.COUNTRY_TO_CAPITAL
-                _mixQuestionText.value = c.name
-                _question.value = ""
-                _countryName.value = c.name
                 _currencyQuestion.value = ""
                 _responseOptions.tryEmit(optionList)
                 _progress.value = UiModel.Loading(false)
@@ -641,6 +654,8 @@ class GameViewModel(
             if (!alpha2.isNullOrBlank()) {
                 countryMasteryManager.recordAnswer(alpha2, true, gameModeKey())
             }
+            // Progresion del chain regional: contar el acierto para la region activa.
+            gameMode.regionalAlpha2?.let { regionalProgressionManager.recordCorrectAnswer(it) }
             val playerLevel = progressionManager.getCurrentLevel()
             dailyChallengeManager.processEvent(
                 event = ChallengeEvent.AnswerGiven(isCorrect = true),
@@ -671,14 +686,7 @@ class GameViewModel(
     }
 
     /** Retorna la clave de modo de juego usada en CountryMasteryManager. */
-    private fun gameModeKey(): String = when (gameMode) {
-        is GameMode.Classic -> "Classic"
-        is GameMode.CapitalByFlag -> "CapitalByFlag"
-        is GameMode.CapitalByCountry -> "CapitalByCountry"
-        is GameMode.CurrencyDetective -> "CurrencyDetective"
-        is GameMode.PopulationChallenge -> "PopulationChallenge"
-        is GameMode.WorldMix -> "WorldMix"
-    }
+    private fun gameModeKey(): String = gameMode.toRouteString()
 
     fun navigateToResult(points: String, totalQuestions: Int, completedAllQuestions: Boolean) {
         Analytics.analyticsGameFinished(points)
@@ -696,8 +704,9 @@ class GameViewModel(
     }
 
     fun getCorrectAnswer(): String {
+        if (gameMode.isRegional) return subdivision?.name ?: ""
         return when (gameMode) {
-            is GameMode.CapitalByFlag, is GameMode.CapitalByCountry -> country.capital
+            is GameMode.CapitalByFlag -> country.capital
             is GameMode.PopulationChallenge -> {
                 val pair = _populationPair.value
                 if (pair != null) {
@@ -707,8 +716,7 @@ class GameViewModel(
             }
             is GameMode.WorldMix -> {
                 when (_currentMixType.value) {
-                    MixQuestionType.FLAG_TO_CAPITAL,
-                    MixQuestionType.COUNTRY_TO_CAPITAL -> country.capital
+                    MixQuestionType.FLAG_TO_CAPITAL -> country.capital
                     MixQuestionType.NEIGHBOR_CHALLENGE -> neighborCorrectAlpha2
                     else -> country.alpha2Code
                 }

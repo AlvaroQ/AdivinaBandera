@@ -119,6 +119,7 @@ dependencies {
     // Images
     implementation libs.coil.compose
     implementation libs.coil.network.okhttp
+    implementation libs.coil.svg
 
     // Ads
     implementation libs.play.services.ads

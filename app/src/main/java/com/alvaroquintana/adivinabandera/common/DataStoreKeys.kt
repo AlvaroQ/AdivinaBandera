@@ -43,12 +43,22 @@ object DataStoreKeys {
     object PreferencesKeys {
         val PERSONAL_RECORD_CLASSIC = intPreferencesKey("personal_record_classic")
         val PERSONAL_RECORD_CAPITAL_BY_FLAG = intPreferencesKey("personal_record_capital_by_flag")
-        val PERSONAL_RECORD_CAPITAL_BY_COUNTRY = intPreferencesKey("personal_record_capital_by_country")
         val PERSONAL_RECORD_CURRENCY_DETECTIVE = intPreferencesKey("personal_record_currency_detective")
         val PERSONAL_RECORD_POPULATION_CHALLENGE = intPreferencesKey("personal_record_population_challenge")
         val PERSONAL_RECORD_WORLD_MIX = intPreferencesKey("personal_record_world_mix")
+        val PERSONAL_RECORD_REGIONAL = intPreferencesKey("personal_record_regional")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+    }
+
+    // Progresion de modos regionales: aciertos acumulados por pais.
+    object RegionalProgressionKeys {
+        val CORRECT_ANSWERS_ES = intPreferencesKey("regional_correct_es")
+        val CORRECT_ANSWERS_MX = intPreferencesKey("regional_correct_mx")
+        val CORRECT_ANSWERS_AR = intPreferencesKey("regional_correct_ar")
+        val CORRECT_ANSWERS_BR = intPreferencesKey("regional_correct_br")
+        val CORRECT_ANSWERS_DE = intPreferencesKey("regional_correct_de")
+        val CORRECT_ANSWERS_US = intPreferencesKey("regional_correct_us")
     }
 
     // Tema

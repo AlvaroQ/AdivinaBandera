@@ -18,6 +18,7 @@ import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
 import com.alvaroquintana.adivinabandera.managers.DailyRewardManager
 import com.alvaroquintana.adivinabandera.managers.GameStatsManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
+import com.alvaroquintana.adivinabandera.managers.RegionalProgressionManager
 import com.alvaroquintana.adivinabandera.managers.StreakManager
 import com.alvaroquintana.adivinabandera.managers.UnlockableCatalog
 import com.alvaroquintana.adivinabandera.managers.UnlockablesManager
@@ -41,6 +42,9 @@ import com.alvaroquintana.data.repository.RankingRepository
 import com.alvaroquintana.usecases.GetCountryById
 import com.alvaroquintana.usecases.GetCountryList
 import com.alvaroquintana.usecases.GetRandomCountries
+import com.alvaroquintana.usecases.GetRandomSubdivisions
+import com.alvaroquintana.usecases.GetSubdivisionCountryCodesWithMinCount
+import com.alvaroquintana.usecases.GetSubdivisionsForCountry
 import com.alvaroquintana.usecases.GetRankingScore
 import com.alvaroquintana.usecases.GetRecordScore
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
@@ -82,10 +86,11 @@ private val appModule = module {
     single { get<AppDatabase>().countryDao() }
     single { get<AppDatabase>().syncMetadataDao() }
     single { get<AppDatabase>().countryStatsDao() }
+    single { get<AppDatabase>().subdivisionDao() }
     factory { Firebase.firestore }
     factory { FirebaseDatabase.getInstance() }
     single { androidContext().dataStore }
-    factory<DataBaseSource> { DataBaseSourceImpl(get(), get(), get(), get()) }
+    factory<DataBaseSource> { DataBaseSourceImpl(get(), get(), get(), get(), get()) }
     factory<FirestoreDataSource> { FirestoreDataSourceImpl() }
     factory<PreferencesDataSource> { PreferencesDataSourceImpl(get()) }
 
@@ -98,6 +103,7 @@ private val appModule = module {
     single { DailyChallengeManager(androidContext()) }
     single { DailyRewardManager(get()) }
     single { CountryMasteryManager(get()) }
+    single { RegionalProgressionManager(get()) }
 
     // Economia virtual y cosmeticos
     single { CurrencyManager(androidContext()) }
@@ -115,18 +121,21 @@ val dataModule = module {
 }
 
 private val scopesModule = module {
-    viewModel { SelectViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> GameViewModel(get(), get(), get(), get(), params.get(), get(), params.getOrNull<List<Int>>() ?: emptyList()) }
+    viewModel { SelectViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { params -> GameViewModel(get(), get(), get(), get(), get(), params.get(), get(), get(), params.getOrNull<List<Int>>() ?: emptyList()) }
     viewModel { ResultViewModel(get(), get(), get(), get(), get()) }
     viewModel { ShopViewModel(get(), get()) }
     viewModel { RankingViewModel(get()) }
     viewModel { InfoViewModel(get()) }
-    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { XpLeaderboardViewModel(get()) }
 
     factory { GetCountryById(get()) }
     factory { GetCountryList(get()) }
     factory { GetRandomCountries(get()) }
+    factory { GetRandomSubdivisions(get()) }
+    factory { GetSubdivisionsForCountry(get()) }
+    factory { GetSubdivisionCountryCodesWithMinCount(get()) }
     factory { GetRecordScore(get()) }
     factory { SaveTopScore(get()) }
     factory { GetRankingScore(get()) }

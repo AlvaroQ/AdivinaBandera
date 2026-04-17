@@ -2,13 +2,16 @@ package com.alvaroquintana.adivinabandera.ui.profile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +53,7 @@ import com.alvaroquintana.adivinabandera.ui.profile.components.ProfileHeroSectio
 import com.alvaroquintana.adivinabandera.ui.profile.components.toBase64
 import com.alvaroquintana.adivinabandera.ui.profile.components.uriToBase64
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import android.graphics.Bitmap
@@ -224,7 +228,9 @@ private fun StatsCard(
             Spacer(Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatItem(
@@ -243,7 +249,9 @@ private fun StatsCard(
             Spacer(Modifier.height(10.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatItem(
@@ -284,7 +292,9 @@ private fun StatItem(
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 8.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = emoji, fontSize = 20.sp)
@@ -294,14 +304,19 @@ private fun StatItem(
                 fontFamily = DynaPuffSemiCondensedFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
             Text(
                 text = label,
                 fontFamily = DynaPuffFamily,
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -368,7 +383,9 @@ private fun DailyStreakCard(
             Spacer(Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatItem(
@@ -445,7 +462,9 @@ private fun ChallengeStatsCard(
             Spacer(Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatItem(
@@ -583,14 +602,18 @@ private fun AchievementsSection(
             rows.forEachIndexed { rowIndex, rowItems ->
                 val isLastRow = rowIndex == rows.lastIndex
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     rowItems.forEach { achievement ->
                         AchievementItem(
                             achievement = achievement,
                             isUnlocked = unlockedIds.contains(achievement.id),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
                         )
                     }
                     repeat(columnsCount - rowItems.size) {
@@ -609,37 +632,147 @@ private fun AchievementItem(
     isUnlocked: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val contentAlpha = if (isUnlocked) 1f else 0.45f
-    val containerColor = if (isUnlocked)
-        MaterialTheme.colorScheme.surfaceContainerHigh
-    else
-        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+    if (isUnlocked) {
+        UnlockedAchievementItem(achievement = achievement, modifier = modifier)
+    } else {
+        LockedAchievementItem(achievement = achievement, modifier = modifier)
+    }
+}
+
+@Composable
+private fun UnlockedAchievementItem(
+    achievement: Achievement,
+    modifier: Modifier = Modifier
+) {
+    val isDark = isAppInDarkTheme()
+
+    // Gradient dorado con profundidad: top cálido (gold vivo) → medio tinted → bottom oscuro.
+    // Esta caída simula un material metálico bajo luz, dándole sensación 3D al fondo.
+    val backgroundGradient = Brush.verticalGradient(
+        colors = if (isDark) listOf(
+            GameGold.copy(alpha = 0.45f),
+            Color(0xFF3A2E15),
+            Color(0xFF1A1508)
+        ) else listOf(
+            Color(0xFFFFF4C2),
+            GameGold.copy(alpha = 0.55f),
+            Color(0xFFE0A800)
+        )
+    )
+
+    // Brillo top — simula reflejo de luz (bevel superior)
+    val topShine = Brush.horizontalGradient(
+        colors = listOf(
+            Color.Transparent,
+            Color.White.copy(alpha = if (isDark) 0.35f else 0.75f),
+            Color.Transparent
+        )
+    )
+
+    // Sombra interior inferior — profundidad 3D
+    val bottomShade = Brush.verticalGradient(
+        colors = listOf(
+            Color.Transparent,
+            Color.Black.copy(alpha = if (isDark) 0.35f else 0.18f)
+        )
+    )
 
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isUnlocked) ElevationTokens.Level1 else ElevationTokens.Level0
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = ElevationTokens.Level3),
+        border = BorderStroke(
+            width = 1.dp,
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    GameGold.copy(alpha = 0.9f),
+                    GameGold.copy(alpha = 0.4f)
+                )
+            )
         )
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .background(backgroundGradient)
         ) {
-            if (isUnlocked) {
-                Text(text = achievement.icon, fontSize = 24.sp)
-            } else {
-                Icon(
-                    imageVector = Icons.Rounded.Lock,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
-                    modifier = Modifier.size(24.dp)
+            // Shine de arriba (1dp) — bevel de luz
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(topShine)
+            )
+            // Sombra inferior — da volumen
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(bottomShade)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = achievement.icon, fontSize = 26.sp)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = achievementName(achievement),
+                    fontFamily = DynaPuffFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 11.sp,
+                    color = if (isDark) Color(0xFFFFF1C2) else Color(0xFF3D2B00),
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "+${achievement.xpReward} XP",
+                    fontFamily = DynaPuffSemiCondensedFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    color = if (isDark) GameGold else Color(0xFF6B4A00)
                 )
             }
+        }
+    }
+}
 
+@Composable
+private fun LockedAchievementItem(
+    achievement: Achievement,
+    modifier: Modifier = Modifier
+) {
+    val contentAlpha = 0.45f
+
+    Card(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = ElevationTokens.Level0)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
+                modifier = Modifier.size(26.dp)
+            )
             Spacer(Modifier.height(6.dp))
-
             Text(
                 text = achievementName(achievement),
                 fontFamily = DynaPuffFamily,
@@ -650,16 +783,14 @@ private fun AchievementItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-
+            Spacer(Modifier.weight(1f))
             Spacer(Modifier.height(4.dp))
-
             Text(
                 text = "+${achievement.xpReward} XP",
                 fontFamily = DynaPuffSemiCondensedFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 11.sp,
-                color = if (isUnlocked) GameGold
-                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             )
         }
     }

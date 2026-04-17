@@ -171,9 +171,9 @@ fun MainScreen(rootNavController: NavHostController) {
                                 Analytics.analyticsClicked("btn_play_capital_flag")
                                 rootNavController.navigate(Game(GameMode.CapitalByFlag.toRouteString()))
                             },
-                            onNavigateToCapitalByCountry = {
-                                Analytics.analyticsClicked("btn_play_capital_country")
-                                rootNavController.navigate(Game(GameMode.CapitalByCountry.toRouteString()))
+                            onNavigateToRegionalMode = { mode ->
+                                Analytics.analyticsClicked("btn_play_${mode.toRouteString()}")
+                                rootNavController.navigate(Game(mode.toRouteString()))
                             },
                             onNavigateToCurrencyDetective = {
                                 Analytics.analyticsClicked("btn_play_currency_detective")

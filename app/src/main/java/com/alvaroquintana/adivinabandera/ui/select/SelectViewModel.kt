@@ -8,12 +8,18 @@ import com.alvaroquintana.adivinabandera.managers.CurrencyManager
 import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
 import com.alvaroquintana.adivinabandera.managers.DailyRewardManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
+import com.alvaroquintana.adivinabandera.managers.RegionalProgressionManager
 import com.alvaroquintana.adivinabandera.managers.StreakManager
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.GameModeDescriptor
+import com.alvaroquintana.domain.REGIONAL_UNLOCK_THRESHOLD
+import com.alvaroquintana.domain.RegionalModeDescriptor
 import com.alvaroquintana.domain.StreakState
 import com.alvaroquintana.domain.challenge.DailyChallengeState
 import com.alvaroquintana.domain.cosmetics.CurrencyBalance
+import com.alvaroquintana.domain.regionalAlpha2
+import com.alvaroquintana.domain.regionalChain
+import com.alvaroquintana.domain.regionalPrerequisite
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,10 +35,15 @@ data class SelectUiState(
     val currentLevel: Int = 1,
     val currentXp: Int = 0,
     val gameModeDescriptors: List<GameModeDescriptor> = emptyList(),
+    val regionalModeDescriptors: List<RegionalModeDescriptor> = emptyList(),
     val dailyReward: DailyRewardManager.DailyReward? = null,
     val discoveredCountries: Int = 0,
     val weakSpotCountryIds: List<Int> = emptyList()
-)
+) {
+    /** Regiones ya desbloqueadas (incluye la primera que siempre lo está). */
+    val unlockedRegionalCount: Int get() = regionalModeDescriptors.count { it.isUnlocked }
+    val totalRegionalCount: Int get() = regionalModeDescriptors.size
+}
 
 class SelectViewModel(
     private val streakManager: StreakManager,
@@ -40,7 +51,8 @@ class SelectViewModel(
     private val progressionManager: ProgressionManager,
     private val currencyManager: CurrencyManager,
     private val dailyRewardManager: DailyRewardManager,
-    private val countryMasteryManager: CountryMasteryManager
+    private val countryMasteryManager: CountryMasteryManager,
+    private val regionalProgressionManager: RegionalProgressionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SelectUiState())
@@ -61,6 +73,8 @@ class SelectViewModel(
             val totalXp = progressionManager.getTotalXp()
             val challengeState = dailyChallengeManager.getDailyChallengeState(playerLevel)
             val descriptors = buildModeDescriptors(playerLevel, totalXp)
+            val regionalSnapshot = regionalProgressionManager.snapshot()
+            val regionalDescriptors = buildRegionalDescriptors(regionalSnapshot)
             val dailyReward = dailyRewardManager.getTodayReward()
             val discoveredCount = countryMasteryManager.getDiscoveredCount()
             val weakSpotIds = countryMasteryManager.getWeakSpotsAsIds()
@@ -73,11 +87,20 @@ class SelectViewModel(
                     currentLevel = playerLevel,
                     currentXp = totalXp,
                     gameModeDescriptors = descriptors,
+                    regionalModeDescriptors = regionalDescriptors,
                     dailyReward = dailyReward,
                     discoveredCountries = discoveredCount,
                     weakSpotCountryIds = weakSpotIds
                 )
             }
+        }
+    }
+
+    /** Refresca los descriptors regionales. Se llama tras volver de una partida regional. */
+    fun refreshRegionalProgression() {
+        viewModelScope.launch {
+            val snapshot = regionalProgressionManager.snapshot()
+            _uiState.update { it.copy(regionalModeDescriptors = buildRegionalDescriptors(snapshot)) }
         }
     }
 
@@ -101,7 +124,6 @@ class SelectViewModel(
         val modes = listOf(
             GameMode.Classic,
             GameMode.CapitalByFlag,
-            GameMode.CapitalByCountry,
             GameMode.CurrencyDetective,
             GameMode.PopulationChallenge,
             GameMode.WorldMix
@@ -120,6 +142,23 @@ class SelectViewModel(
                 unlockProgress = progress,
                 isNearUnlock = !isUnlocked && progress >= 0.75f,
                 xpToUnlock = xpToUnlock.coerceAtLeast(0)
+            )
+        }
+    }
+
+    private fun buildRegionalDescriptors(snapshot: Map<String, Int>): List<RegionalModeDescriptor> {
+        return regionalChain.mapNotNull { mode ->
+            val alpha2 = mode.regionalAlpha2 ?: return@mapNotNull null
+            val prereqAlpha2 = mode.regionalPrerequisite?.regionalAlpha2
+            val prereqCorrect = prereqAlpha2?.let { snapshot[it] ?: 0 } ?: 0
+            val isUnlocked = prereqAlpha2 == null || prereqCorrect >= REGIONAL_UNLOCK_THRESHOLD
+            RegionalModeDescriptor(
+                mode = mode,
+                alpha2 = alpha2,
+                isUnlocked = isUnlocked,
+                correctAnswersInMode = snapshot[alpha2] ?: 0,
+                prerequisiteCorrectAnswers = prereqCorrect,
+                requiredToUnlockNext = REGIONAL_UNLOCK_THRESHOLD
             )
         }
     }

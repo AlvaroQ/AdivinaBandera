@@ -37,9 +37,9 @@ import com.alvaroquintana.adivinabandera.ui.common.LocalSharedTransitionScope
 import com.alvaroquintana.adivinabandera.ui.select.SelectUiState
 import com.alvaroquintana.adivinabandera.ui.theme.DarkGeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.DarkSurface
-import com.alvaroquintana.adivinabandera.ui.theme.GeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.GeoAmber
 import com.alvaroquintana.adivinabandera.ui.theme.GeoAmberLight
+import com.alvaroquintana.adivinabandera.ui.theme.GeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.GeoForest
 import com.alvaroquintana.adivinabandera.ui.theme.GeoForestLight
 import com.alvaroquintana.adivinabandera.ui.theme.GeoGold
@@ -54,7 +54,6 @@ import com.alvaroquintana.adivinabandera.ui.theme.GeoTextMuted
 import com.alvaroquintana.adivinabandera.ui.theme.GeoTextSecondary
 import com.alvaroquintana.adivinabandera.ui.theme.isAppInDarkTheme
 import com.alvaroquintana.domain.GameMode
-import com.alvaroquintana.domain.GameModeDescriptor
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -62,7 +61,7 @@ fun SelectModesContent(
     uiState: SelectUiState,
     onNavigateToGame: () -> Unit,
     onNavigateToCapitalByFlag: () -> Unit,
-    onNavigateToCapitalByCountry: () -> Unit,
+    onNavigateToRegionalSubdivisions: () -> Unit,
     onNavigateToCurrencyDetective: () -> Unit,
     onNavigateToPopulationChallenge: () -> Unit,
     onNavigateToWorldMix: () -> Unit,
@@ -82,6 +81,8 @@ fun SelectModesContent(
     val populationDesc = uiState.gameModeDescriptors.find { it.mode is GameMode.PopulationChallenge }
     val worldMixDesc = uiState.gameModeDescriptors.find { it.mode is GameMode.WorldMix }
     val currentLevel = uiState.currentLevel
+    val unlockedRegions = uiState.unlockedRegionalCount
+    val totalRegions = uiState.totalRegionalCount
 
     val sharedScope = LocalSharedTransitionScope.current
     val animScope = LocalAnimatedContentScope.current
@@ -93,12 +94,14 @@ fun SelectModesContent(
             textSecondary = textSecondary,
             cardTheme = cardTheme,
             currentLevel = currentLevel,
+            unlockedRegions = unlockedRegions,
+            totalRegions = totalRegions,
             currencyDesc = currencyDesc,
             populationDesc = populationDesc,
             worldMixDesc = worldMixDesc,
             onNavigateToGame = onNavigateToGame,
             onNavigateToCapitalByFlag = onNavigateToCapitalByFlag,
-            onNavigateToCapitalByCountry = onNavigateToCapitalByCountry,
+            onNavigateToRegionalSubdivisions = onNavigateToRegionalSubdivisions,
             onNavigateToCurrencyDetective = onNavigateToCurrencyDetective,
             onNavigateToPopulationChallenge = onNavigateToPopulationChallenge,
             onNavigateToWorldMix = onNavigateToWorldMix,
@@ -127,12 +130,14 @@ fun SelectModesContent(
             textSecondary = textSecondary,
             cardTheme = cardTheme,
             currentLevel = currentLevel,
+            unlockedRegions = unlockedRegions,
+            totalRegions = totalRegions,
             currencyDesc = currencyDesc,
             populationDesc = populationDesc,
             worldMixDesc = worldMixDesc,
             onNavigateToGame = onNavigateToGame,
             onNavigateToCapitalByFlag = onNavigateToCapitalByFlag,
-            onNavigateToCapitalByCountry = onNavigateToCapitalByCountry,
+            onNavigateToRegionalSubdivisions = onNavigateToRegionalSubdivisions,
             onNavigateToCurrencyDetective = onNavigateToCurrencyDetective,
             onNavigateToPopulationChallenge = onNavigateToPopulationChallenge,
             onNavigateToWorldMix = onNavigateToWorldMix,
@@ -148,12 +153,14 @@ private fun ModesContentLayout(
     textSecondary: Color,
     cardTheme: CardTheme,
     currentLevel: Int,
-    currencyDesc: GameModeDescriptor?,
-    populationDesc: GameModeDescriptor?,
-    worldMixDesc: GameModeDescriptor?,
+    unlockedRegions: Int,
+    totalRegions: Int,
+    currencyDesc: com.alvaroquintana.domain.GameModeDescriptor?,
+    populationDesc: com.alvaroquintana.domain.GameModeDescriptor?,
+    worldMixDesc: com.alvaroquintana.domain.GameModeDescriptor?,
     onNavigateToGame: () -> Unit,
     onNavigateToCapitalByFlag: () -> Unit,
-    onNavigateToCapitalByCountry: () -> Unit,
+    onNavigateToRegionalSubdivisions: () -> Unit,
     onNavigateToCurrencyDetective: () -> Unit,
     onNavigateToPopulationChallenge: () -> Unit,
     onNavigateToWorldMix: () -> Unit,
@@ -203,13 +210,18 @@ private fun ModesContentLayout(
                 onClick = onNavigateToCapitalByFlag
             )
             Spacer(modifier = Modifier.height(10.dp))
+            // Entry point al chain regional (6 modos)
             GameModeCard(
-                title = stringResource(R.string.play_capital_by_country),
-                subtitle = stringResource(R.string.mode_capital_country_subtitle),
+                title = stringResource(R.string.play_regional_subdivisions),
+                subtitle = stringResource(
+                    R.string.regional_subdivisions_progress,
+                    unlockedRegions,
+                    totalRegions
+                ),
                 icon = Icons.Rounded.Map,
                 iconGradient = Brush.verticalGradient(listOf(GeoAmber, GeoAmberLight)),
                 theme = cardTheme,
-                onClick = onNavigateToCapitalByCountry
+                onClick = onNavigateToRegionalSubdivisions
             )
             Spacer(modifier = Modifier.height(10.dp))
             GameModeCard(

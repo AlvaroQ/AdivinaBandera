@@ -14,10 +14,15 @@ class PreferencesDataSourceImpl(
 
     private fun personalRecordKey(gameMode: String) = when (gameMode) {
         "CapitalByFlag" -> PreferencesKeys.PERSONAL_RECORD_CAPITAL_BY_FLAG
-        "CapitalByCountry" -> PreferencesKeys.PERSONAL_RECORD_CAPITAL_BY_COUNTRY
         "CurrencyDetective" -> PreferencesKeys.PERSONAL_RECORD_CURRENCY_DETECTIVE
         "PopulationChallenge" -> PreferencesKeys.PERSONAL_RECORD_POPULATION_CHALLENGE
         "WorldMix" -> PreferencesKeys.PERSONAL_RECORD_WORLD_MIX
+        "RegionSpain",
+        "RegionMexico",
+        "RegionArgentina",
+        "RegionBrazil",
+        "RegionGermany",
+        "RegionUSA" -> PreferencesKeys.PERSONAL_RECORD_REGIONAL
         else -> PreferencesKeys.PERSONAL_RECORD_CLASSIC
     }
 

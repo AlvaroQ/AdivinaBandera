@@ -3,8 +3,13 @@ package com.alvaroquintana.adivinabandera.ui.game
 import app.cash.turbine.test
 import com.alvaroquintana.adivinabandera.MainDispatcherRule
 import com.alvaroquintana.adivinabandera.managers.Analytics
+import com.alvaroquintana.adivinabandera.managers.CountryMasteryManager
+import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
+import com.alvaroquintana.adivinabandera.managers.ProgressionManager
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.usecases.GetCountryById
+import com.alvaroquintana.usecases.GetRandomCountries
+import com.alvaroquintana.usecases.GetSubdivisionsForCountry
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
@@ -51,7 +56,15 @@ class GameViewModelTest {
             wrongCountry3
         )
 
-        viewModel = GameViewModel(getCountryById)
+        viewModel = GameViewModel(
+            getCountryById = getCountryById,
+            getRandomCountries = mockk(relaxed = true),
+            getSubdivisionsForCountry = mockk(relaxed = true),
+            dailyChallengeManager = mockk(relaxed = true),
+            progressionManager = mockk(relaxed = true),
+            countryMasteryManager = mockk(relaxed = true),
+            regionalProgressionManager = mockk(relaxed = true)
+        )
     }
 
     @After
@@ -95,8 +108,10 @@ class GameViewModelTest {
     @Test
     fun `navigateToResult emits Navigation Result`() = runTest {
         viewModel.navigation.test {
-            viewModel.navigateToResult("10")
-            assertEquals(GameViewModel.Navigation.Result, awaitItem())
+            viewModel.navigateToResult(points = "10", totalQuestions = 5, completedAllQuestions = false)
+            val result = awaitItem()
+            assertTrue(result is GameViewModel.Navigation.Result)
+            assertEquals("10", (result as GameViewModel.Navigation.Result).points)
         }
     }
 

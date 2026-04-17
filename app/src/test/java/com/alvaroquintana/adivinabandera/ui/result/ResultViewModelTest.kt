@@ -46,7 +46,7 @@ class ResultViewModelTest {
 
         coEvery { getRecordScore.invoke(any(), any()) } returns "100"
 
-        viewModel = ResultViewModel(saveTopScore, getRecordScore, preferencesDataSource, processGameResultUseCase)
+        viewModel = ResultViewModel(saveTopScore, getRecordScore, preferencesDataSource, processGameResultUseCase, gameStatsManager = mockk(relaxed = true))
     }
 
     @After
@@ -63,7 +63,7 @@ class ResultViewModelTest {
         viewModel.getPersonalRecord(20)
 
         coVerify { preferencesDataSource.savePersonalRecord(20, "Classic") }
-        assertEquals("20", viewModel.uiState.value.personalRecord)
+        assertEquals(20, viewModel.uiState.value.personalRecord)
     }
 
     @Test
@@ -74,7 +74,7 @@ class ResultViewModelTest {
         viewModel.getPersonalRecord(10)
 
         coVerify(exactly = 0) { preferencesDataSource.savePersonalRecord(any(), any()) }
-        assertEquals("50", viewModel.uiState.value.personalRecord)
+        assertEquals(50, viewModel.uiState.value.personalRecord)
     }
 
     @Test

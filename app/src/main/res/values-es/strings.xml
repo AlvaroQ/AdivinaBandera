@@ -10,7 +10,8 @@
     <string name="play">Jugar</string>
     <string name="mode_classic_title">Bandera de países</string>
     <string name="play_capital_by_flag">Capital por Bandera</string>
-    <string name="play_capital_by_country">Capital por País</string>
+    <string name="play_subdivision_by_flag">Banderas regionales</string>
+    <string name="play_regional_subdivisions">Banderas regionales</string>
     <string name="play_currency_detective">Detective de Monedas</string>
     <string name="play_population_challenge">Desafío de Población</string>
     <string name="play_world_mix">World Mix</string>
@@ -87,8 +88,9 @@
     <string name="game_modes_label">MODOS DE JUEGO</string>
     <string name="mode_classic_subtitle">¿De qué país es esta bandera?</string>
     <string name="mode_capital_flag_subtitle">¿Cuál es la capital de este país?</string>
-    <string name="mode_capital_country_subtitle">¿Sabés la capital de cada país?</string>
-    <string name="mode_currency_subtitle">¿Reconocés las monedas del mundo?</string>
+    <string name="mode_subdivision_subtitle">¿A qué región pertenece esta bandera?</string>
+    <string name="subdivision_label">Región</string>
+    <string name="mode_currency_subtitle">¿Reconoces las monedas del mundo?</string>
     <string name="mode_population_subtitle">¿Qué país tiene más habitantes?</string>
     <string name="mode_world_mix_subtitle">Preguntas de todo tipo mezcladas</string>
     <string name="streak_label">Racha: %1$d días</string>
@@ -128,7 +130,7 @@
     <string name="mystery_box_opening">Abriendo…</string>
 
     <!-- Mode unlock -->
-    <string name="tap_to_continue">Tocá para continuar</string>
+    <string name="tap_to_continue">Toca para continuar</string>
 
     <!-- Region mastery -->
     <string name="countries_discovered">Países descubiertos</string>
@@ -186,4 +188,20 @@
     <!-- Select screen — fila de vista previa de modos -->
     <string name="more_modes">Más modos</string>
     <string name="more_modes_subtitle">%1$d/%2$d formas de jugar</string>
+
+    <!-- Chain de banderas regionales -->
+    <string name="regional_subdivisions_progress">%1$d/%2$d regiones desbloqueadas</string>
+    <string name="regional_subdivisions_header">Banderas regionales</string>
+    <string name="regional_subdivisions_hint">Acierta 6 respuestas en cada región para desbloquear la siguiente.</string>
+    <string name="region_spain_title">España</string>
+    <string name="region_mexico_title">México</string>
+    <string name="region_argentina_title">Argentina</string>
+    <string name="region_brazil_title">Brasil</string>
+    <string name="region_germany_title">Alemania</string>
+    <string name="region_usa_title">Estados Unidos</string>
+    <string name="region_locked_subtitle">Acierta 6 respuestas en %1$s para desbloquearla</string>
+    <string name="region_active_subtitle">Sigue jugando para desbloquear la próxima región</string>
+    <string name="region_completed_subtitle">¡Dominada! Próxima región desbloqueada</string>
+    <string name="region_progress_prereq">%1$d/%2$d aciertos en la región anterior</string>
+    <string name="region_progress_self">%1$d/%2$d aciertos para desbloquear la siguiente región</string>
 </resources>

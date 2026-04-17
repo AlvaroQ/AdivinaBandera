@@ -1,8 +1,8 @@
 package com.alvaroquintana.adivinabandera.datasource
 
 import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING
-import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING_CAPITAL_BY_COUNTRY
 import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING_CAPITAL_BY_FLAG
+import com.alvaroquintana.adivinabandera.utils.Constants.COLLECTION_RANKING_SUBDIVISIONS
 import com.alvaroquintana.data.datasource.FirestoreDataSource
 import com.alvaroquintana.domain.User
 import com.google.firebase.Firebase
@@ -19,10 +19,15 @@ class FirestoreDataSourceImpl : FirestoreDataSource {
 
     private fun collectionForMode(gameMode: String): String = when (gameMode) {
         "CapitalByFlag" -> COLLECTION_RANKING_CAPITAL_BY_FLAG
-        "CapitalByCountry" -> COLLECTION_RANKING_CAPITAL_BY_COUNTRY
         "CurrencyDetective" -> "ranking-moneda"
         "PopulationChallenge" -> "ranking-poblacion"
         "WorldMix" -> "ranking-worldmix"
+        "RegionSpain",
+        "RegionMexico",
+        "RegionArgentina",
+        "RegionBrazil",
+        "RegionGermany",
+        "RegionUSA" -> COLLECTION_RANKING_SUBDIVISIONS
         else -> COLLECTION_RANKING
     }
 

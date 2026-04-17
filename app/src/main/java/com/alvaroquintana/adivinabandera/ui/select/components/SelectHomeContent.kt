@@ -146,7 +146,8 @@ fun SelectHomeContent(
             ModesPreviewRow(
                 modesDescriptors = uiState.gameModeDescriptors,
                 onClick = onModesClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                regionalUnlocked = uiState.unlockedRegionalCount > 0
             )
 
             Spacer(modifier = Modifier.height(24.dp))

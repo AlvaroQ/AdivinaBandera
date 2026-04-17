@@ -9,7 +9,8 @@
     <string name="play">Play</string>
     <string name="mode_classic_title">Country flags</string>
     <string name="play_capital_by_flag">Capital by Flag</string>
-    <string name="play_capital_by_country">Capital by Country</string>
+    <string name="play_subdivision_by_flag">Regional flags</string>
+    <string name="play_regional_subdivisions">Regional flags</string>
     <string name="play_currency_detective">Currency Detective</string>
     <string name="play_population_challenge">Population Challenge</string>
     <string name="population_challenge_question">Who has the larger population?</string>
@@ -89,7 +90,8 @@
     <string name="game_modes_label">GAME MODES</string>
     <string name="mode_classic_subtitle">What country does this flag belong to?</string>
     <string name="mode_capital_flag_subtitle">What is the capital of this country?</string>
-    <string name="mode_capital_country_subtitle">Do you know the capital of each country?</string>
+    <string name="mode_subdivision_subtitle">Which region does this flag belong to?</string>
+    <string name="subdivision_label">Region</string>
     <string name="mode_currency_subtitle">Can you recognize world currencies?</string>
     <string name="mode_population_subtitle">Which country has more inhabitants?</string>
     <string name="mode_world_mix_subtitle">Mixed questions of all types</string>
@@ -185,4 +187,20 @@
     <!-- Select screen — modes preview row -->
     <string name="more_modes">More modes</string>
     <string name="more_modes_subtitle">%1$d/%2$d ways to play</string>
+
+    <!-- Regional subdivisions chain -->
+    <string name="regional_subdivisions_progress">%1$d/%2$d regions unlocked</string>
+    <string name="regional_subdivisions_header">Regional flags</string>
+    <string name="regional_subdivisions_hint">Score 6 correct answers in each region to unlock the next one.</string>
+    <string name="region_spain_title">Spain</string>
+    <string name="region_mexico_title">Mexico</string>
+    <string name="region_argentina_title">Argentina</string>
+    <string name="region_brazil_title">Brazil</string>
+    <string name="region_germany_title">Germany</string>
+    <string name="region_usa_title">United States</string>
+    <string name="region_locked_subtitle">Score 6 correct answers in %1$s to unlock</string>
+    <string name="region_active_subtitle">Keep playing to unlock the next region</string>
+    <string name="region_completed_subtitle">Mastered — next region unlocked</string>
+    <string name="region_progress_prereq">%1$d/%2$d correct answers in the previous region</string>
+    <string name="region_progress_self">%1$d/%2$d correct answers to unlock the next region</string>
 </resources>

@@ -38,12 +38,12 @@ class SaveTopScoreTest {
     fun `invoke delegates to repository with explicit gameMode`() = runTest {
         val user = User(name = "Alice", score = 500)
         val expected = Result.success(user)
-        coEvery { rankingRepository.addRecord(user, "CapitalByCountry") } returns expected
+        coEvery { rankingRepository.addRecord(user, "CapitalByFlag") } returns expected
 
-        val result = useCase.invoke(user, "CapitalByCountry")
+        val result = useCase.invoke(user, "CapitalByFlag")
 
         assertEquals(expected, result)
-        coVerify { rankingRepository.addRecord(user, "CapitalByCountry") }
+        coVerify { rankingRepository.addRecord(user, "CapitalByFlag") }
     }
 
     @Test

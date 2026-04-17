@@ -38,9 +38,9 @@ import com.alvaroquintana.adivinabandera.ui.common.LocalAnimatedContentScope
 import com.alvaroquintana.adivinabandera.ui.common.LocalSharedTransitionScope
 import com.alvaroquintana.adivinabandera.ui.theme.DarkGeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.DarkSurface
-import com.alvaroquintana.adivinabandera.ui.theme.GeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.GeoAmber
 import com.alvaroquintana.adivinabandera.ui.theme.GeoAmberLight
+import com.alvaroquintana.adivinabandera.ui.theme.GeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.GeoForest
 import com.alvaroquintana.adivinabandera.ui.theme.GeoForestLight
 import com.alvaroquintana.adivinabandera.ui.theme.GeoGold
@@ -65,7 +65,8 @@ private data class MiniIconSpec(
 fun ModesPreviewRow(
     modesDescriptors: List<GameModeDescriptor>,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    regionalUnlocked: Boolean = true
 ) {
     val isDark = isAppInDarkTheme()
     val cardBg = if (isDark) DarkSurface else Color.White
@@ -80,15 +81,20 @@ fun ModesPreviewRow(
     val animScope = LocalAnimatedContentScope.current
 
     val descriptorByMode = modesDescriptors.associateBy { it.mode }
+    // El chain regional se representa con un único mini icon "Map". Siempre unlocked
+    // (España abierta desde el inicio); el modo pseudo-representante es RegionSpain.
     val miniIcons = listOf(
         MiniIconSpec(GameMode.CapitalByFlag, Icons.Rounded.LocationCity, Brush.verticalGradient(listOf(GeoForest, GeoForestLight))),
-        MiniIconSpec(GameMode.CapitalByCountry, Icons.Rounded.Map, Brush.verticalGradient(listOf(GeoAmber, GeoAmberLight))),
+        MiniIconSpec(GameMode.RegionSpain, Icons.Rounded.Map, Brush.verticalGradient(listOf(GeoAmber, GeoAmberLight))),
         MiniIconSpec(GameMode.CurrencyDetective, Icons.Rounded.Paid, Brush.verticalGradient(listOf(GeoPurple, GeoPurpleLight))),
         MiniIconSpec(GameMode.PopulationChallenge, Icons.Rounded.BarChart, Brush.verticalGradient(listOf(GeoTeal, GeoTealLight))),
         MiniIconSpec(GameMode.WorldMix, Icons.Rounded.AutoAwesome, Brush.verticalGradient(listOf(GeoGold, GeoGoldLight)))
     )
     val unlockedModesCount = miniIcons.count { spec ->
-        descriptorByMode[spec.mode]?.isUnlocked ?: (spec.mode.unlockLevel == 0)
+        when (spec.mode) {
+            GameMode.RegionSpain -> regionalUnlocked
+            else -> descriptorByMode[spec.mode]?.isUnlocked ?: (spec.mode.unlockLevel == 0)
+        }
     }
 
     val sharedBoundsModifier: Modifier = if (sharedScope != null && animScope != null) {
@@ -147,7 +153,10 @@ fun ModesPreviewRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 miniIcons.forEach { spec ->
-                    val isUnlocked = descriptorByMode[spec.mode]?.isUnlocked ?: (spec.mode.unlockLevel == 0)
+                    val isUnlocked = when (spec.mode) {
+                        GameMode.RegionSpain -> regionalUnlocked
+                        else -> descriptorByMode[spec.mode]?.isUnlocked ?: (spec.mode.unlockLevel == 0)
+                    }
                     Box(
                         modifier = Modifier
                             .size(32.dp)

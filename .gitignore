@@ -23,3 +23,11 @@ assets/country-f6ae1-export.json
 *.apk
 *.pen
 *.json
+
+# Secrets — dotenv
+.env
+.env.*
+!.env.example
+capture/scripts/.env.example
+capture/
+.atl/skill-registry.md

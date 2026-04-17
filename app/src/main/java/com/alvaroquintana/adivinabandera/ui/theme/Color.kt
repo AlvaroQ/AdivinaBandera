@@ -49,6 +49,15 @@ val DarkOnVariant   = Color(0xFF7896B8)   // azul grisáceo — texto secundario
 val DarkAccent      = Color(0xFF3A5A7A)   // azul acero — bordes y accents
 val DarkOutlineVar  = Color(0xFF1E3050)   // azul profundo — outline suave
 
+// ── Dark surface container tiers (M3 expressive, navy-tinted) ───────────────
+// Escalonados de más profundo (lowest) a más elevado (highest), todos con
+// tinte navy para mantener coherencia con DarkSurface/DarkSurfaceVar.
+val DarkSurfaceContainerLowest  = Color(0xFF0A1122)
+val DarkSurfaceContainerLow     = Color(0xFF121C30)
+val DarkSurfaceContainer        = Color(0xFF172338)
+val DarkSurfaceContainerHigh    = Color(0xFF1E2B48)
+val DarkSurfaceContainerHighest = Color(0xFF253357)
+
 // ── Light palette ────────────────────────────────────────────────────────────
 val md_theme_light_primary                = GameBlue
 val md_theme_light_onPrimary              = GameWhite
@@ -102,7 +111,7 @@ val md_theme_dark_onBackground            = DarkOnSurface
 val md_theme_dark_surface                 = DarkSurface
 val md_theme_dark_onSurface               = DarkOnSurface
 val md_theme_dark_surfaceVariant          = DarkSurfaceVar
-val md_theme_dark_onSurfaceVariant        = DarkAccent
+val md_theme_dark_onSurfaceVariant        = DarkOnVariant
 val md_theme_dark_outline                 = DarkAccent
 val md_theme_dark_outlineVariant          = DarkSurfaceVar
 val md_theme_dark_inverseSurface          = DarkOnSurface

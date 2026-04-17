@@ -252,6 +252,8 @@ class ResultViewModel(
      * Solo devuelve el desbloqueo de nivel más alto cruzado (el más relevante para mostrar).
      */
     private fun detectModeUnlock(previousLevel: Int, newLevel: Int): UnlockEvent? {
+        // Los modos regionales (España/México/...) no se desbloquean por nivel XP,
+        // sino por aciertos en el chain (RegionalProgressionManager).
         val lockedModes = listOf(
             GameMode.CurrencyDetective to "Currency Detective",
             GameMode.PopulationChallenge to "Population Challenge",

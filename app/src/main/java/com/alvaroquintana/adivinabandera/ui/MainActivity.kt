@@ -35,9 +35,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.lifecycle.lifecycleScope
 import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.managers.Analytics
+import com.alvaroquintana.adivinabandera.managers.XpSyncManager
 import com.alvaroquintana.adivinabandera.ui.animation.NavTransitions
 import com.alvaroquintana.adivinabandera.ui.composables.AdBannerView
 import com.alvaroquintana.adivinabandera.ui.composables.GameAppBar
@@ -80,6 +82,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.util.concurrent.TimeUnit
@@ -90,6 +94,7 @@ class MainActivity : ComponentActivity() {
     private val tag = "MainActivity"
     private lateinit var auth: FirebaseAuth
     private val isMobileAdsInitialized = AtomicBoolean(false)
+    private val xpSyncManager: XpSyncManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -141,6 +146,9 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         val currentUser = auth.currentUser
         updateUI(currentUser)
+        if (currentUser != null) {
+            lifecycleScope.launch { xpSyncManager.syncPendingIfNeeded() }
+        }
     }
 
     private fun signInAnonymously() {
@@ -150,6 +158,7 @@ class MainActivity : ComponentActivity() {
                     log(tag, "signInAnonymously:success")
                     val user = auth.currentUser
                     updateUI(user)
+                    lifecycleScope.launch { xpSyncManager.syncPendingIfNeeded() }
                 } else {
                     log(tag, "signInAnonymously:failure", task.exception)
                     Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()

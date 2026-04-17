@@ -7,6 +7,7 @@ import com.alvaroquintana.adivinabandera.common.DataStoreKeys.XpSyncKeys
 import com.alvaroquintana.data.datasource.XpLeaderboardDataSource
 import com.alvaroquintana.domain.XpLeaderboardEntry
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -30,13 +31,18 @@ class XpSyncManager(
             return@withLock
         }
 
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            markPendingSync()
+            return@withLock
+        }
+
         try {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@withLock
             val entry = buildFullEntry(uid)
             xpLeaderboardDataSource.syncUserEntry(entry)
             clearPendingSync()
-        } catch (_: Exception) {
-            // En caso de error de red, se reintentara en la proxima oportunidad
+        } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
             markPendingSync()
         }
     }

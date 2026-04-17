@@ -43,6 +43,7 @@ import com.alvaroquintana.adivinabandera.ui.theme.GameGold
 import com.alvaroquintana.adivinabandera.ui.theme.GameSilver
 import com.alvaroquintana.adivinabandera.ui.theme.PillShape
 import com.alvaroquintana.adivinabandera.ui.theme.getBackgroundGradient
+import com.alvaroquintana.adivinabandera.ui.theme.isAppInDarkTheme
 import com.alvaroquintana.domain.XpLeaderboardEntry
 
 @Composable
@@ -127,13 +128,13 @@ private fun XpLeaderboardHeaderCard() {
                     fontFamily = DynaPuffFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Top 100 jugadores por experiencia",
                     fontFamily = DynaPuffFamily,
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -149,14 +150,15 @@ private fun XpLeaderboardItem(
         1    -> GameGold
         2    -> GameSilver
         3    -> GameBronze
-        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
+    val podiumAlpha = if (isAppInDarkTheme()) 0.18f else 0.10f
     val surfaceColor = when (position) {
-        1    -> GameGold.copy(alpha = 0.08f)
-        2    -> GameSilver.copy(alpha = 0.08f)
-        3    -> GameBronze.copy(alpha = 0.08f)
-        else -> MaterialTheme.colorScheme.surface
+        1    -> GameGold.copy(alpha = podiumAlpha)
+        2    -> GameSilver.copy(alpha = podiumAlpha)
+        3    -> GameBronze.copy(alpha = podiumAlpha)
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
     }
 
     Surface(

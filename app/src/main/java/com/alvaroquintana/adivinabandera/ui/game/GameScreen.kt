@@ -59,6 +59,7 @@ import com.alvaroquintana.adivinabandera.ui.theme.getBackgroundGradient
 import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.domain.GameMode
+import com.alvaroquintana.domain.isRegional
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
@@ -85,17 +86,14 @@ fun GameScreen(
     val currentMixType by viewModel.currentMixType.collectAsStateWithLifecycle()
     val mixQuestionText by viewModel.mixQuestionText.collectAsStateWithLifecycle()
 
-    val isCapitalMode = viewModel.gameMode == GameMode.CapitalByFlag || viewModel.gameMode == GameMode.CapitalByCountry
-    val isCountryNameMode = viewModel.gameMode == GameMode.CapitalByCountry
+    val isCapitalMode = viewModel.gameMode == GameMode.CapitalByFlag
     val isCurrencyMode = viewModel.gameMode == GameMode.CurrencyDetective
     val isPopulationMode = viewModel.gameMode == GameMode.PopulationChallenge
     val isWorldMixMode = viewModel.gameMode == GameMode.WorldMix
+    val isSubdivisionMode = viewModel.gameMode.isRegional
 
     // WorldMix capital sub-types use capital city text as options (not alpha2codes)
-    val isMixCapitalType = isWorldMixMode && (
-        currentMixType == MixQuestionType.FLAG_TO_CAPITAL ||
-        currentMixType == MixQuestionType.COUNTRY_TO_CAPITAL
-    )
+    val isMixCapitalType = isWorldMixMode && currentMixType == MixQuestionType.FLAG_TO_CAPITAL
     // WorldMix flag sub-types show the flag image as question
     val isMixFlagType = isWorldMixMode && (
         currentMixType == MixQuestionType.FLAG_TO_COUNTRY ||
@@ -124,12 +122,9 @@ fun GameScreen(
             rawOptions = optionList.toList()
             // Re-read mix type at collection time (StateFlow.value is always current)
             val mixType = viewModel.currentMixType.value
-            val isMixCapitalNow = isWorldMixMode && (
-                mixType == MixQuestionType.FLAG_TO_CAPITAL ||
-                mixType == MixQuestionType.COUNTRY_TO_CAPITAL
-            )
-            displayOptions = if (isCapitalMode || isMixCapitalNow) {
-                // Capital modes and WorldMix capital types: options are capital city names, display as-is
+            val isMixCapitalNow = isWorldMixMode && mixType == MixQuestionType.FLAG_TO_CAPITAL
+            displayOptions = if (isCapitalMode || isMixCapitalNow || isSubdivisionMode) {
+                // Capital modes, WorldMix capital types, and subdivision mode: options are text names, display as-is
                 optionList.toList()
             } else {
                 // Classic, CurrencyDetective, and WorldMix non-capital types use alpha2codes → country names
@@ -224,16 +219,24 @@ fun GameScreen(
                     label = "questionTransition"
                 ) { _ ->
                 when {
-                    isCountryNameMode -> {
-                        if (countryName.isNotEmpty() && !isLoading) TextQuestion(countryName, 32.sp)
-                    }
                     isCurrencyMode -> {
                         if (currencyQuestion.isNotEmpty() && !isLoading) TextQuestion(currencyQuestion, 26.sp)
                     }
                     isWorldMixMode && !isMixFlagType -> {
-                        // WorldMix text-based types: COUNTRY_TO_CAPITAL, CURRENCY_TO_COUNTRY,
+                        // WorldMix text-based types: CURRENCY_TO_COUNTRY,
                         // DEMONYM_TO_COUNTRY, LANGUAGE_TO_COUNTRY, CALLING_CODE_TO_COUNTRY, NEIGHBOR_CHALLENGE
                         if (mixQuestionText.isNotEmpty() && !isLoading) TextQuestion(mixQuestionText, 24.sp)
+                    }
+                    isSubdivisionMode -> {
+                        if (flagBase64.isNotEmpty() && !isLoading) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                FlagImage(
+                                    url = flagBase64,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
                     }
                     else -> {
                         // All flag-based modes (Classic, CapitalByFlag, MixFlagType)
@@ -297,7 +300,7 @@ fun GameScreen(
                             if (buttonsEnabled) {
                                 buttonsEnabled = false
                                 val correctAnswer = viewModel.getCorrectAnswer()
-                                val correctDisplay = if (isCapitalMode || isMixCapitalType) {
+                                val correctDisplay = if (isCapitalMode || isMixCapitalType || isSubdivisionMode) {
                                     correctAnswer
                                 } else {
                                     alpha2ToDisplayName(correctAnswer)

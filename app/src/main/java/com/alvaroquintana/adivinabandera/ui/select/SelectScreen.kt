@@ -23,8 +23,10 @@ import com.alvaroquintana.adivinabandera.ui.common.LocalDetailBackAction
 import com.alvaroquintana.adivinabandera.ui.common.LocalDetailOpenState
 import com.alvaroquintana.adivinabandera.ui.common.LocalSharedTransitionScope
 import com.alvaroquintana.adivinabandera.ui.common.rememberReducedMotion
+import com.alvaroquintana.adivinabandera.ui.select.components.RegionalSubdivisionsContent
 import com.alvaroquintana.adivinabandera.ui.select.components.SelectHomeContent
 import com.alvaroquintana.adivinabandera.ui.select.components.SelectModesContent
+import com.alvaroquintana.domain.GameMode
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -32,7 +34,7 @@ fun SelectScreen(
     viewModel: SelectViewModel,
     onNavigateToGame: () -> Unit,
     onNavigateToCapitalByFlag: () -> Unit,
-    onNavigateToCapitalByCountry: () -> Unit,
+    onNavigateToRegionalMode: (GameMode) -> Unit,
     onNavigateToCurrencyDetective: () -> Unit,
     onNavigateToPopulationChallenge: () -> Unit,
     onNavigateToWorldMix: () -> Unit,
@@ -43,24 +45,43 @@ fun SelectScreen(
     onNavigateToPractice: () -> Unit = {}
 ) {
     var modesExpanded by rememberSaveable { mutableStateOf(false) }
+    var regionalExpanded by rememberSaveable { mutableStateOf(false) }
     val detailOpen = LocalDetailOpenState.current
     val backAction = LocalDetailBackAction.current
     val reducedMotion = rememberReducedMotion()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(modesExpanded) {
-        detailOpen.value = modesExpanded
-        backAction.value = if (modesExpanded) {
-            { modesExpanded = false }
-        } else null
+    LaunchedEffect(modesExpanded, regionalExpanded) {
+        detailOpen.value = modesExpanded || regionalExpanded
+        backAction.value = when {
+            regionalExpanded -> { { regionalExpanded = false } }
+            modesExpanded -> { { modesExpanded = false } }
+            else -> null
+        }
     }
     DisposableEffect(Unit) { onDispose { backAction.value = null } }
-    BackHandler(enabled = modesExpanded) { modesExpanded = false }
+    BackHandler(enabled = modesExpanded || regionalExpanded) {
+        when {
+            regionalExpanded -> regionalExpanded = false
+            modesExpanded -> modesExpanded = false
+        }
+    }
+
+    // Al cerrar el panel regional, refresca por si el jugador volvió de una partida regional.
+    LaunchedEffect(regionalExpanded) {
+        if (regionalExpanded) viewModel.refreshRegionalProgression()
+    }
 
     SharedTransitionLayout {
         CompositionLocalProvider(LocalSharedTransitionScope provides this@SharedTransitionLayout) {
+            // Target state compuesto: 0 = home, 1 = modes, 2 = regional
+            val target = when {
+                regionalExpanded -> 2
+                modesExpanded -> 1
+                else -> 0
+            }
             AnimatedContent(
-                targetState = modesExpanded,
+                targetState = target,
                 label = "select-modes-transform",
                 transitionSpec = {
                     if (reducedMotion) {
@@ -70,10 +91,10 @@ fun SelectScreen(
                             .using(SizeTransform(clip = false))
                     }
                 }
-            ) { expanded ->
+            ) { state ->
                 CompositionLocalProvider(LocalAnimatedContentScope provides this@AnimatedContent) {
-                    if (!expanded) {
-                        SelectHomeContent(
+                    when (state) {
+                        0 -> SelectHomeContent(
                             viewModel = viewModel,
                             uiState = uiState,
                             onNavigateToGame = onNavigateToGame,
@@ -84,15 +105,18 @@ fun SelectScreen(
                             onNavigateToShop = onNavigateToShop,
                             onNavigateToPractice = onNavigateToPractice
                         )
-                    } else {
-                        SelectModesContent(
+                        1 -> SelectModesContent(
                             uiState = uiState,
                             onNavigateToGame = onNavigateToGame,
                             onNavigateToCapitalByFlag = onNavigateToCapitalByFlag,
-                            onNavigateToCapitalByCountry = onNavigateToCapitalByCountry,
+                            onNavigateToRegionalSubdivisions = { regionalExpanded = true },
                             onNavigateToCurrencyDetective = onNavigateToCurrencyDetective,
                             onNavigateToPopulationChallenge = onNavigateToPopulationChallenge,
                             onNavigateToWorldMix = onNavigateToWorldMix
+                        )
+                        else -> RegionalSubdivisionsContent(
+                            descriptors = uiState.regionalModeDescriptors,
+                            onNavigateToRegion = { mode -> onNavigateToRegionalMode(mode) }
                         )
                     }
                 }

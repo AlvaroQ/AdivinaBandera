@@ -7,6 +7,7 @@ import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
 import com.alvaroquintana.adivinabandera.managers.GameStatsManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
 import com.alvaroquintana.adivinabandera.managers.StreakManager
+import com.alvaroquintana.adivinabandera.managers.XpSyncManager
 import com.alvaroquintana.domain.Achievement
 import com.alvaroquintana.domain.challenge.ChallengeStats
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
@@ -51,7 +52,8 @@ class ProfileViewModel(
     private val achievementManager: AchievementManager,
     private val getUserGlobalRankUseCase: GetUserGlobalRankUseCase,
     private val streakManager: StreakManager,
-    private val dailyChallengeManager: DailyChallengeManager
+    private val dailyChallengeManager: DailyChallengeManager,
+    private val xpSyncManager: XpSyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -119,6 +121,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             progressionManager.setNickname(nickname)
             _uiState.update { it.copy(nickname = nickname) }
+            xpSyncManager.syncPendingIfNeeded()
         }
     }
 

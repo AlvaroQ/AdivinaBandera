@@ -112,12 +112,12 @@ class RankingRepositoryTest {
     @Test
     fun `getWorldRecords delegates with explicit gameMode`() = runTest {
         val expected = "Maria:200"
-        coEvery { firestoreDataSource.getWorldRecords(5L, "CapitalByCountry") } returns expected
+        coEvery { firestoreDataSource.getWorldRecords(5L, "CapitalByFlag") } returns expected
 
-        val result = repository.getWorldRecords(5L, "CapitalByCountry")
+        val result = repository.getWorldRecords(5L, "CapitalByFlag")
 
         assertEquals(expected, result)
-        coVerify(exactly = 1) { firestoreDataSource.getWorldRecords(5L, "CapitalByCountry") }
+        coVerify(exactly = 1) { firestoreDataSource.getWorldRecords(5L, "CapitalByFlag") }
     }
 
     @Test
