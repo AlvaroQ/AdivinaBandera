@@ -2,6 +2,7 @@
     <string name="app_name">Adivina bandera</string>
     <string name="resultado_screen_title">Resultado final</string>
     <string name="ranking_screen_title">Ranking</string>
+    <string name="profile_title">Perfil</string>
     <string name="share_message">\nHice una puntuación de %d ¿eres capaz de superarlo?\n\n</string>
     <string name="share_message_general">\nMe ha gustado mucho esta aplicación.\n\n</string>
     <string name="choose_one">Elige una:</string>
@@ -9,6 +10,7 @@
     <string name="play_again">Jugar de nuevo</string>
     <string name="play">Jugar</string>
     <string name="mode_classic_title">Bandera de países</string>
+    <string name="mode_regions_title">Regiones</string>
     <string name="play_capital_by_flag">Capital por Bandera</string>
     <string name="play_subdivision_by_flag">Banderas regionales</string>
     <string name="play_regional_subdivisions">Banderas regionales</string>
@@ -133,6 +135,7 @@
     <string name="practice_weak_spots">Practicar puntos débiles</string>
     <string name="weak_spot_countries">%1$d países con más errores</string>
     <string name="practice_title">Práctica</string>
+    <string name="back_press_again_to_exit">Volvé a tocar atrás para salir</string>
 
     <!-- Game screen -->
     <string name="population_challenge_question">¿Quién tiene más población?</string>
@@ -217,9 +220,11 @@
     <string name="show_more">Mostrar más</string>
     <string name="show_less">Mostrar menos</string>
     <string name="remove_filter">Quitar filtro</string>
+    <string name="countries_per_row_label">Países por fila</string>
+    <string name="change_countries_grid_to">Cambiar a grilla %1$dx%2$d</string>
 
     <!-- Select screen — fila de vista previa de modos -->
-    <string name="more_modes">Más modos</string>
+    <string name="more_modes">Modos</string>
     <string name="more_modes_subtitle">%1$d/%2$d formas de jugar</string>
 
     <!-- Chain de banderas regionales -->

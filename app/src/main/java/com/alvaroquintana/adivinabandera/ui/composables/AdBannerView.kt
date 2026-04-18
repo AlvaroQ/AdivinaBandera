@@ -19,6 +19,10 @@ fun AdBannerView(
     modifier: Modifier = Modifier,
     adLocation: String = Analytics.AD_LOC_GAME
 ) {
+    fun shouldReportAdError(code: Int): Boolean {
+        return code != AdRequest.ERROR_CODE_NO_FILL && code != AdRequest.ERROR_CODE_NETWORK_ERROR
+    }
+
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
 
@@ -34,13 +38,17 @@ fun AdBannerView(
                 )
                 adListener = object : AdListener() {
                     override fun onAdLoaded() {
+                        FirebaseCrashlytics.getInstance().log("banner_ad_load_success:$adLocation")
                         Analytics.analyticsAdImpression(Analytics.AD_TYPE_BANNER, adLocation)
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
-                        FirebaseCrashlytics.getInstance().recordException(
-                            Exception("Banner load failed [$adLocation]: ${adError.message}")
-                        )
+                        FirebaseCrashlytics.getInstance().apply {
+                            log("banner_ad_load_failed:$adLocation:${adError.code}")
+                            if (shouldReportAdError(adError.code)) {
+                                recordException(Exception("Banner load failed [$adLocation]: ${adError.message}"))
+                            }
+                        }
                         Analytics.analyticsAdFailedToLoad(
                             Analytics.AD_TYPE_BANNER, adLocation, adError.message
                         )

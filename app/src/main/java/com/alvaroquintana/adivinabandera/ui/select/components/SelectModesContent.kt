@@ -1,10 +1,8 @@
 package com.alvaroquintana.adivinabandera.ui.select.components
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -112,10 +110,7 @@ fun SelectModesContent(
 
     val animatedBodyModifier = with(animScope) {
         Modifier.animateEnterExit(
-            enter = slideInVertically(
-                animationSpec = tween(400, delayMillis = 50, easing = FastOutSlowInEasing),
-                initialOffsetY = { it }
-            ) + fadeIn(tween(300, delayMillis = 100))
+            enter = fadeIn(tween(300, delayMillis = 100))
         )
     }
 

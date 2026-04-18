@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.ui.animation.NavTransitions
+import com.alvaroquintana.adivinabandera.ui.common.LocalInfoGridColumns
 import com.alvaroquintana.adivinabandera.ui.common.LocalInfoFiltersExpanded
 import com.alvaroquintana.adivinabandera.ui.components.EmptyState
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
@@ -63,10 +64,13 @@ import com.alvaroquintana.adivinabandera.ui.theme.LocalWindowSizeClass
 import com.alvaroquintana.adivinabandera.ui.theme.getBackgroundGradient
 import com.alvaroquintana.adivinabandera.ui.theme.isExpanded
 import com.alvaroquintana.adivinabandera.ui.theme.isMedium
+import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_ITEM_EACH_LOAD
 import com.alvaroquintana.domain.Country
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import java.util.Calendar
+
+private const val MIN_FILTERED_RESULTS_BEFORE_SCROLL = 24
 
 @Composable
 fun InfoListContent(
@@ -82,6 +86,10 @@ fun InfoListContent(
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedRegion by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedColumnsState = LocalInfoGridColumns.current
+    if (selectedColumnsState.intValue !in 2..4) {
+        selectedColumnsState.intValue = if (windowSize.isMedium) 3 else 2
+    }
 
     val filteredList = remember(countries, searchQuery, selectedRegion) {
         val query = searchQuery.trim()
@@ -101,6 +109,7 @@ fun InfoListContent(
     val countryByAlpha3 = remember(countries) {
         countries.associateBy { it.alpha3Code.uppercase() }
     }
+    val hasActiveFilters = searchQuery.isNotBlank() || selectedRegion != null
 
     val featured = remember(countries) {
         if (countries.isEmpty()) null
@@ -123,6 +132,8 @@ fun InfoListContent(
                 onSearchChange = { searchQuery = it },
                 selectedRegion = selectedRegion,
                 onRegionChange = { selectedRegion = it },
+                hasActiveFilters = hasActiveFilters,
+                totalLoadedCount = countries.size,
                 featured = featured,
                 onCountryClick = onCountryClick,
                 currentPage = currentPage,
@@ -132,12 +143,14 @@ fun InfoListContent(
             )
 
             else -> InfoStackLayout(
-                columns = if (windowSize.isMedium) 3 else 2,
+                columns = selectedColumnsState.intValue.coerceIn(2, 4),
                 filteredList = filteredList,
                 searchQuery = searchQuery,
                 onSearchChange = { searchQuery = it },
                 selectedRegion = selectedRegion,
                 onRegionChange = { selectedRegion = it },
+                hasActiveFilters = hasActiveFilters,
+                totalLoadedCount = countries.size,
                 featured = featured,
                 onCountryClick = onCountryClick,
                 currentPage = currentPage,
@@ -156,6 +169,8 @@ private fun InfoStackLayout(
     onSearchChange: (String) -> Unit,
     selectedRegion: String?,
     onRegionChange: (String?) -> Unit,
+    hasActiveFilters: Boolean,
+    totalLoadedCount: Int,
     featured: Country?,
     onCountryClick: (Country) -> Unit,
     currentPage: Int,
@@ -163,7 +178,14 @@ private fun InfoStackLayout(
     onClearFocus: () -> Unit
 ) {
     val gridState = rememberLazyGridState()
-    val canLoadMore = searchQuery.isBlank() && selectedRegion == null && filteredList.isNotEmpty()
+    val canLoadMore = filteredList.isNotEmpty()
+    FilteredPrefetchEffect(
+        enabled = hasActiveFilters && filteredList.size < MIN_FILTERED_RESULTS_BEFORE_SCROLL,
+        filteredCount = filteredList.size,
+        totalLoadedCount = totalLoadedCount,
+        currentPage = currentPage,
+        onLoadMore = onLoadMore
+    )
     PaginationEffect(
         gridState = gridState,
         enabled = canLoadMore,
@@ -194,6 +216,8 @@ private fun InfoExpandedLayout(
     onSearchChange: (String) -> Unit,
     selectedRegion: String?,
     onRegionChange: (String?) -> Unit,
+    hasActiveFilters: Boolean,
+    totalLoadedCount: Int,
     featured: Country?,
     onCountryClick: (Country) -> Unit,
     currentPage: Int,
@@ -202,7 +226,14 @@ private fun InfoExpandedLayout(
     onClearFocus: () -> Unit
 ) {
     val gridState = rememberLazyGridState()
-    val canLoadMore = searchQuery.isBlank() && selectedRegion == null && filteredList.isNotEmpty()
+    val canLoadMore = filteredList.isNotEmpty()
+    FilteredPrefetchEffect(
+        enabled = hasActiveFilters && filteredList.size < MIN_FILTERED_RESULTS_BEFORE_SCROLL,
+        filteredCount = filteredList.size,
+        totalLoadedCount = totalLoadedCount,
+        currentPage = currentPage,
+        onLoadMore = onLoadMore
+    )
     PaginationEffect(
         gridState = gridState,
         enabled = canLoadMore,
@@ -232,6 +263,25 @@ private fun InfoExpandedLayout(
         )
         Box(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
             EmptySelectionPlaceholder()
+        }
+    }
+}
+
+@Composable
+private fun FilteredPrefetchEffect(
+    enabled: Boolean,
+    filteredCount: Int,
+    totalLoadedCount: Int,
+    currentPage: Int,
+    onLoadMore: (Int) -> Unit
+) {
+    LaunchedEffect(enabled, filteredCount, totalLoadedCount, currentPage) {
+        if (!enabled) return@LaunchedEffect
+
+        val expectedLoadedCount = (currentPage + 1) * TOTAL_ITEM_EACH_LOAD
+        val canRequestNextPage = totalLoadedCount >= expectedLoadedCount
+        if (canRequestNextPage) {
+            onLoadMore(currentPage + 1)
         }
     }
 }
@@ -368,6 +418,7 @@ private fun InfoGrid(
         }
     }
 }
+
 
 @Composable
 private fun StickySearchBar(

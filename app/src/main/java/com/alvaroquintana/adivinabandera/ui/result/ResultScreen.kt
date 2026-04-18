@@ -115,6 +115,34 @@ fun ResultScreen(
                 )
             }
 
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Play again (primary)
+            item {
+                PlayAgainButton(onClick = onPlayAgain)
+            }
+
+            // View Ranking
+            item {
+                RankingButton(onClick = onViewRanking)
+            }
+
+            // Share
+            item {
+                ShareButton(onClick = onShare)
+            }
+
+            // Rate
+            item {
+                RateButton(onClick = onRate)
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             // Badge motivacional de engagement
             item {
                 EngagementBadge(
@@ -154,30 +182,6 @@ fun ResultScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            // Play again (primary)
-            item {
-                PlayAgainButton(onClick = onPlayAgain)
-            }
-
-            // View Ranking
-            item {
-                RankingButton(onClick = onViewRanking)
-            }
-
-            // Share
-            item {
-                ShareButton(onClick = onShare)
-            }
-
-            // Rate
-            item {
-                RateButton(onClick = onRate)
             }
 
             item {

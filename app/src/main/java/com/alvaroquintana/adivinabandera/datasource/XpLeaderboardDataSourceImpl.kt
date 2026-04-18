@@ -18,6 +18,7 @@ class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
 
     override suspend fun syncUserEntry(entry: XpLeaderboardEntry) {
         suspendCancellableCoroutine { continuation ->
+            FirebaseCrashlytics.getInstance().log("xp_sync_user_entry_started")
             val data = mapOf(
                 "uid" to entry.uid,
                 "nickname" to entry.nickname,
@@ -32,8 +33,12 @@ class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
 
             collection.document(entry.uid)
                 .set(data, SetOptions.merge())
-                .addOnSuccessListener { continuation.resume(Unit) }
+                .addOnSuccessListener {
+                    FirebaseCrashlytics.getInstance().log("xp_sync_user_entry_success")
+                    continuation.resume(Unit)
+                }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().log("xp_sync_user_entry_failed")
                     FirebaseCrashlytics.getInstance().recordException(e)
                     continuation.resume(Unit)
                 }
@@ -42,6 +47,7 @@ class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
 
     override suspend fun getLeaderboard(limit: Int): List<XpLeaderboardEntry> {
         return suspendCancellableCoroutine { continuation ->
+            FirebaseCrashlytics.getInstance().log("xp_leaderboard_load_started")
             collection
                 .orderBy("totalXp", Query.Direction.DESCENDING)
                 .limit(limit.toLong())
@@ -60,13 +66,19 @@ class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
                                 accuracy = (doc.getDouble("accuracy") ?: 0.0).toFloat(),
                                 lastUpdated = doc.getTimestamp("lastUpdated")?.toDate()?.time ?: 0L
                             )
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            FirebaseCrashlytics.getInstance().apply {
+                                log("xp_leaderboard_entry_parse_failed")
+                                recordException(e)
+                            }
                             null
                         }
                     }
+                    FirebaseCrashlytics.getInstance().log("xp_leaderboard_load_success")
                     continuation.resume(entries)
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().log("xp_leaderboard_load_failed")
                     FirebaseCrashlytics.getInstance().recordException(e)
                     continuation.resume(emptyList())
                 }
@@ -85,11 +97,14 @@ class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
                         .addOnSuccessListener { result ->
                             continuation.resume(result.count.toInt() + 1)
                         }
-                        .addOnFailureListener {
+                        .addOnFailureListener { e ->
+                            FirebaseCrashlytics.getInstance().log("xp_user_rank_count_failed")
+                            FirebaseCrashlytics.getInstance().recordException(e)
                             continuation.resume(-1)
                         }
                 }
                 .addOnFailureListener { e ->
+                    FirebaseCrashlytics.getInstance().log("xp_user_rank_load_failed")
                     FirebaseCrashlytics.getInstance().recordException(e)
                     continuation.resume(-1)
                 }

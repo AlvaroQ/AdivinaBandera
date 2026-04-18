@@ -2,12 +2,14 @@
     <string name="app_name">Guess flag</string>
     <string name="resultado_screen_title">Final result</string>
     <string name="ranking_screen_title">Ranking</string>
+    <string name="profile_title">Profile</string>
     <string name="share_message">\nMy score is %d, can you get over me?\n\n</string>
     <string name="share_message_general">\nThis is a great app and it\'s free!.\n\n</string>
     <string name="choose_one">Choose:</string>
     <string name="life">life</string>
     <string name="play">Play</string>
     <string name="mode_classic_title">Country flags</string>
+    <string name="mode_regions_title">Regions</string>
     <string name="play_capital_by_flag">Capital by Flag</string>
     <string name="play_subdivision_by_flag">Regional flags</string>
     <string name="play_regional_subdivisions">Regional flags</string>
@@ -135,6 +137,7 @@
     <string name="practice_weak_spots">Practice weak spots</string>
     <string name="weak_spot_countries">%1$d countries with most errors</string>
     <string name="practice_title">Practice</string>
+    <string name="back_press_again_to_exit">Press back again to exit</string>
 
     <!-- Daily challenges -->
     <string name="loading_challenges">Loading challenges…</string>
@@ -216,9 +219,11 @@
     <string name="show_more">Show more</string>
     <string name="show_less">Show less</string>
     <string name="remove_filter">Remove filter</string>
+    <string name="countries_per_row_label">Countries per row</string>
+    <string name="change_countries_grid_to">Change to %1$dx%2$d grid</string>
 
     <!-- Select screen — modes preview row -->
-    <string name="more_modes">More modes</string>
+    <string name="more_modes">Modes</string>
     <string name="more_modes_subtitle">%1$d/%2$d ways to play</string>
 
     <!-- Regional subdivisions chain -->

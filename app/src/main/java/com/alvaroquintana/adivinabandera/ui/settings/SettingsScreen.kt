@@ -139,8 +139,8 @@ fun SettingsScreen(
 
                     SettingsClickableItem(
                         iconRes = R.drawable.ic_version,
-                        title = stringResource(R.string.back),
-                        summary = stringResource(R.string.loading_image),
+                        title = stringResource(R.string.privacy_policy),
+                        summary = stringResource(R.string.know_more),
                         accentColor = accentColor,
                         onClick = onPrivacyPolicy
                     )

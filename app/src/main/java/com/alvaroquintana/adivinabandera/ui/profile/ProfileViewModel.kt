@@ -12,6 +12,7 @@ import com.alvaroquintana.domain.Achievement
 import com.alvaroquintana.domain.challenge.ChallengeStats
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,7 +86,16 @@ class ProfileViewModel(
 
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             val rank = if (uid != null && nickname.isNotBlank()) {
-                try { getUserGlobalRankUseCase.invoke(uid) } catch (_: Exception) { -1 }
+                try {
+                    getUserGlobalRankUseCase.invoke(uid)
+                } catch (e: Exception) {
+                    FirebaseCrashlytics.getInstance().apply {
+                        log("profile_global_rank_load_failed")
+                        setCustomKey("profile_has_nickname", nickname.isNotBlank())
+                        recordException(e)
+                    }
+                    -1
+                }
             } else -1
 
             _uiState.update {

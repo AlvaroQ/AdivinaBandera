@@ -49,10 +49,15 @@ import com.alvaroquintana.adivinabandera.R
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun InfoScreen(viewModel: InfoViewModel) {
+fun InfoScreen(
+    viewModel: InfoViewModel,
+    onTopBarTitleChange: (String?) -> Unit = {}
+) {
     val windowSize = LocalWindowSizeClass.current
     var selectedAlpha2 by rememberSaveable { mutableStateOf<String?>(null) }
     var currentPage by rememberSaveable { mutableIntStateOf(0) }
+    var pendingPage by rememberSaveable { mutableStateOf<Int?>(null) }
+    var lastLoadedCount by rememberSaveable { mutableIntStateOf(0) }
 
     val detailOpen = LocalDetailOpenState.current
     val backAction = LocalDetailBackAction.current
@@ -79,6 +84,31 @@ fun InfoScreen(viewModel: InfoViewModel) {
 
     val selectedCountry = remember(countryList, selectedAlpha2) {
         selectedAlpha2?.let { a -> countryList.firstOrNull { it.alpha2Code.equals(a, ignoreCase = true) } }
+    }
+
+    LaunchedEffect(countryList.size, isLoading, pendingPage) {
+        if (pendingPage == null) {
+            lastLoadedCount = countryList.size
+            return@LaunchedEffect
+        }
+
+        if (!isLoading) {
+            if (countryList.size > lastLoadedCount) {
+                currentPage = pendingPage ?: currentPage
+                lastLoadedCount = countryList.size
+            }
+            pendingPage = null
+        }
+    }
+
+    LaunchedEffect(selectedCountry?.name) {
+        onTopBarTitleChange(selectedCountry?.name)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            onTopBarTitleChange(null)
+        }
     }
 
     when {
@@ -109,8 +139,10 @@ fun InfoScreen(viewModel: InfoViewModel) {
                 onClearSelection = { selectedAlpha2 = null },
                 currentPage = currentPage,
                 onLoadMore = { next ->
-                    currentPage = next
-                    viewModel.loadMorePrideList(next)
+                    if (pendingPage == null && next == currentPage + 1) {
+                        pendingPage = next
+                        viewModel.loadMorePrideList(next)
+                    }
                 }
             )
         }
@@ -125,8 +157,10 @@ fun InfoScreen(viewModel: InfoViewModel) {
                 onClearSelection = { selectedAlpha2 = null },
                 currentPage = currentPage,
                 onLoadMore = { next ->
-                    currentPage = next
-                    viewModel.loadMorePrideList(next)
+                    if (pendingPage == null && next == currentPage + 1) {
+                        pendingPage = next
+                        viewModel.loadMorePrideList(next)
+                    }
                 }
             )
         }

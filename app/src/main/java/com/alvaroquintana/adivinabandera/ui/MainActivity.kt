@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.animation.ExitTransition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -95,6 +96,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private val isMobileAdsInitialized = AtomicBoolean(false)
     private val xpSyncManager: XpSyncManager by inject()
+    private val crashlytics: FirebaseCrashlytics
+        get() = FirebaseCrashlytics.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -104,6 +107,12 @@ class MainActivity : ComponentActivity() {
 
         auth = Firebase.auth
         Analytics.initialize(this)
+        crashlytics.apply {
+            setCustomKey("app_version", BuildConfig.VERSION_NAME)
+            setCustomKey("build_number", BuildConfig.VERSION_CODE)
+            setCustomKey("build_type", BuildConfig.BUILD_TYPE)
+            log("session_started")
+        }
 
         // Initialize ads immediately — no UMP/consent flow in this app
         initializeMobileAdsSdk()
@@ -121,7 +130,9 @@ class MainActivity : ComponentActivity() {
                         ThemeMode.valueOf(
                             prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
                         )
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        crashlytics.log("theme_mode_fallback_main")
+                        crashlytics.recordException(e)
                         ThemeMode.SYSTEM
                     }
                 )
@@ -156,11 +167,16 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     log(tag, "signInAnonymously:success")
+                    crashlytics.log("auth_anonymous_sign_in_success")
                     val user = auth.currentUser
                     updateUI(user)
                     lifecycleScope.launch { xpSyncManager.syncPendingIfNeeded() }
                 } else {
                     log(tag, "signInAnonymously:failure", task.exception)
+                    crashlytics.log("auth_anonymous_sign_in_failed")
+                    crashlytics.recordException(
+                        task.exception ?: IllegalStateException("Anonymous sign-in failed without exception")
+                    )
                     Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
                     updateUI(null)
                 }
@@ -170,11 +186,14 @@ class MainActivity : ComponentActivity() {
     private fun updateUI(user: FirebaseUser?) {
         val isSignedIn = user != null
         log(tag, "updateUI, isSignedIn = $isSignedIn")
+        crashlytics.setCustomKey("user_signed_in", isSignedIn)
 
         if (!isSignedIn) {
+            crashlytics.log("auth_user_not_signed_in")
             signInAnonymously()
         } else {
-            FirebaseCrashlytics.getInstance().setUserId(user.uid)
+            crashlytics.log("auth_user_signed_in")
+            crashlytics.setUserId(user.uid)
             log(tag, "updateUI: logged in")
         }
     }
@@ -190,6 +209,10 @@ private fun AppNavHost(
     navController: NavHostController,
     onThemeModeChanged: (ThemeMode) -> Unit = {}
 ) {
+    LaunchedEffect(Unit) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "NavHost")
+    }
+
     NavHost(
         navController = navController,
         startDestination = Splash,
@@ -213,9 +236,9 @@ private fun AppNavHost(
 
         composable<Main>(
             enterTransition = { NavTransitions.fadeEnterTransition },
-            exitTransition = { NavTransitions.fadeExitTransition },
+            exitTransition = { ExitTransition.None },
             popEnterTransition = { NavTransitions.fadeEnterTransition },
-            popExitTransition = { NavTransitions.fadeExitTransition }
+            popExitTransition = { ExitTransition.None }
         ) {
             MainScreen(rootNavController = navController)
         }
@@ -282,6 +305,11 @@ private fun PracticeRoute(navController: NavHostController, countryIds: List<Int
     var life by rememberSaveable { mutableIntStateOf(3) }
     var stage by rememberSaveable { mutableIntStateOf(1) }
     var points by rememberSaveable { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Practice")
+        FirebaseCrashlytics.getInstance().setCustomKey("game_mode", "ClassicPractice")
+    }
 
     LaunchedEffect(Unit) {
         viewModel.navigation.collect { navigation ->
@@ -372,6 +400,25 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
         adUnitId = stringResource(R.string.BONIFICADO_GAME),
         adLocation = Analytics.AD_LOC_GAME
     )
+    val gameModeTitle = when (gameMode) {
+        is GameMode.Classic -> stringResource(R.string.mode_classic_title)
+        is GameMode.CapitalByFlag -> stringResource(R.string.play_capital_by_flag)
+        is GameMode.RegionSpain,
+        is GameMode.RegionMexico,
+        is GameMode.RegionArgentina,
+        is GameMode.RegionBrazil,
+        is GameMode.RegionGermany,
+        is GameMode.RegionUSA -> stringResource(R.string.mode_regions_title)
+        is GameMode.CurrencyDetective -> stringResource(R.string.play_currency_detective)
+        is GameMode.PopulationChallenge -> stringResource(R.string.play_population_challenge)
+        is GameMode.WorldMix -> stringResource(R.string.play_world_mix)
+    }
+
+    LaunchedEffect(mode) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Game")
+        FirebaseCrashlytics.getInstance().setCustomKey("game_mode", mode)
+        FirebaseCrashlytics.getInstance().log("game_route_opened")
+    }
 
     LaunchedEffect(Unit) {
         viewModel.navigation.collect { navigation ->
@@ -415,7 +462,7 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
     }
 
     GameScreenLayout(
-        title = stringResource(R.string.game_title),
+        title = gameModeTitle,
         onBackClick = { navController.popBackStack() },
         showLives = true,
         lives = life,
@@ -479,6 +526,11 @@ private fun ResultRoute(navController: NavHostController, result: Result) {
     val viewModel: ResultViewModel = koinViewModel()
     val context = LocalContext.current
     val gamePoints = result.points
+
+    LaunchedEffect(result.gameMode) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Result")
+        FirebaseCrashlytics.getInstance().setCustomKey("game_mode", result.gameMode)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.initWithGameMode(result.gameMode)
@@ -560,7 +612,9 @@ private fun SettingsRoute(
                 ThemeMode.valueOf(
                     prefs.getString("theme_mode", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().log("theme_mode_fallback_settings")
+                FirebaseCrashlytics.getInstance().recordException(e)
                 ThemeMode.SYSTEM
             }
         )
@@ -569,6 +623,7 @@ private fun SettingsRoute(
 
     LaunchedEffect(Unit) {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_SETTINGS)
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Settings")
     }
 
     GameScreenLayout(
@@ -613,6 +668,11 @@ private fun SettingsRoute(
 private fun XpLeaderboardRoute(navController: NavHostController) {
     val viewModel: XpLeaderboardViewModel = koinViewModel()
 
+    LaunchedEffect(Unit) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "XpLeaderboard")
+        FirebaseCrashlytics.getInstance().log("xp_leaderboard_opened")
+    }
+
     GameScreenLayout(
         title = "Ranking de XP",
         onBackClick = { navController.popBackStack() },
@@ -633,6 +693,10 @@ private fun XpLeaderboardRoute(navController: NavHostController) {
 @Composable
 private fun ShopRoute(navController: NavHostController) {
     val viewModel: ShopViewModel = koinViewModel()
+
+    LaunchedEffect(Unit) {
+        FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Shop")
+    }
 
     GameScreenLayout(
         title = "Tienda",

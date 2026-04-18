@@ -1,16 +1,10 @@
 package com.alvaroquintana.adivinabandera.ui.game
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +54,6 @@ import com.alvaroquintana.adivinabandera.utils.Constants.TOTAL_COUNTRIES
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.isRegional
-import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -139,11 +132,7 @@ fun GameScreen(
             }
             buttonsEnabled = true
 
-            if (stage == 1) {
-                buttonsVisible = true
-            } else {
-                buttonsVisible = false
-                delay(50)
+            if (!buttonsVisible) {
                 buttonsVisible = true
             }
         }
@@ -209,113 +198,71 @@ fun GameScreen(
             ) {
                 if (isLoading) {
                     LoadingState()
-                }
-
-                AnimatedContent(
-                    targetState = stage,
-                    transitionSpec = {
-                        fadeIn(tween(300)) togetherWith fadeOut(tween(200))
-                    },
-                    label = "questionTransition"
-                ) { _ ->
-                when {
-                    isCurrencyMode -> {
-                        if (currencyQuestion.isNotEmpty() && !isLoading) TextQuestion(currencyQuestion, 26.sp)
-                    }
-                    isWorldMixMode && !isMixFlagType -> {
-                        // WorldMix text-based types: CURRENCY_TO_COUNTRY,
-                        // DEMONYM_TO_COUNTRY, LANGUAGE_TO_COUNTRY, CALLING_CODE_TO_COUNTRY, NEIGHBOR_CHALLENGE
-                        if (mixQuestionText.isNotEmpty() && !isLoading) TextQuestion(mixQuestionText, 24.sp)
-                    }
-                    isSubdivisionMode -> {
-                        if (flagBase64.isNotEmpty() && !isLoading) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                FlagImage(
-                                    url = flagBase64,
+                } else {
+                    when {
+                        isCurrencyMode -> {
+                            if (currencyQuestion.isNotEmpty()) TextQuestion(currencyQuestion, 26.sp)
+                        }
+                        isWorldMixMode && !isMixFlagType -> {
+                            if (mixQuestionText.isNotEmpty()) TextQuestion(mixQuestionText, 24.sp)
+                        }
+                        isSubdivisionMode -> {
+                            if (flagBase64.isNotEmpty()) {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    FlagImage(
+                                        url = flagBase64,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+                            }
+                        }
+                        else -> {
+                            if (flagBase64.isNotEmpty()) {
+                                QuestionCard(
+                                    flagBase64 = flagBase64,
+                                    questionNumber = stage,
+                                    totalQuestions = TOTAL_COUNTRIES,
                                     modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Fit
+                                    imageContentScale = ContentScale.Fit
                                 )
                             }
                         }
                     }
-                    else -> {
-                        // All flag-based modes (Classic, CapitalByFlag, MixFlagType)
-                        if (flagBase64.isNotEmpty() && !isLoading) {
-                            QuestionCard(
-                                flagBase64 = flagBase64,
-                                questionNumber = stage,
-                                totalQuestions = TOTAL_COUNTRIES,
-                                modifier = Modifier.fillMaxSize(),
-                                imageContentScale = ContentScale.Fit
-                            )
-                        }
-                    }
                 }
-                } // AnimatedContent
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = stringResource(R.string.game_title),
-                fontFamily = DynaPuffFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             OptionGrid(
                 options = displayOptions,
                 modifier = Modifier.fillMaxWidth()
             ) { index, option, cardModifier ->
-                var buttonVisible by remember(stage) { mutableStateOf(false) }
-
-                LaunchedEffect(stage, buttonsVisible) {
-                    buttonVisible = false
-                    if (buttonsVisible && !isLoading) {
-                        delay(index * 80L)
-                        buttonVisible = true
-                    }
-                }
-
-                AnimatedVisibility(
-                    visible = buttonVisible,
-                    enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
-                        initialOffsetY = { it / 2 },
-                        animationSpec = spring(
-                            dampingRatio = 0.6f,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    ),
-                    modifier = cardModifier
-                ) {
-                    AnswerOptionCard(
-                        text = option,
-                        state = answerStates[index],
-                        enabled = buttonsEnabled,
-                        modifier = Modifier,
-                        onClick = {
-                            if (buttonsEnabled) {
-                                buttonsEnabled = false
-                                val correctAnswer = viewModel.getCorrectAnswer()
-                                val correctDisplay = if (isCapitalMode || isMixCapitalType || isSubdivisionMode) {
-                                    correctAnswer
-                                } else {
-                                    alpha2ToDisplayName(correctAnswer)
-                                }
-                                applyAnswerFeedbackStates(
-                                    answerStates,
-                                    displayOptions,
-                                    correctDisplay,
-                                    index
-                                )
-                                onAnswerSelected(index, correctAnswer, rawOptions)
+                AnswerOptionCard(
+                    text = option,
+                    state = answerStates[index],
+                    enabled = buttonsEnabled,
+                    modifier = cardModifier,
+                    onClick = {
+                        if (buttonsEnabled) {
+                            buttonsEnabled = false
+                            val correctAnswer = viewModel.getCorrectAnswer()
+                            val correctDisplay = if (isCapitalMode || isMixCapitalType || isSubdivisionMode) {
+                                correctAnswer
+                            } else {
+                                alpha2ToDisplayName(correctAnswer)
                             }
+                            applyAnswerFeedbackStates(
+                                answerStates,
+                                displayOptions,
+                                correctDisplay,
+                                index
+                            )
+                            onAnswerSelected(index, correctAnswer, rawOptions)
                         }
-                    )
-                }
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))

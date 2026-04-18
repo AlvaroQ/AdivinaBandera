@@ -25,14 +25,17 @@ class XpSyncManager(
     // Sincroniza el XP del usuario tras finalizar una partida
     // Si no tiene nickname configurado, marca la sincronizacion como pendiente
     suspend fun syncAfterGame() = mutex.withLock {
+        FirebaseCrashlytics.getInstance().log("xp_sync_after_game_started")
         val nickname = progressionManager.getNickname()
         if (nickname.isBlank()) {
+            FirebaseCrashlytics.getInstance().log("xp_sync_pending_missing_nickname")
             markPendingSync()
             return@withLock
         }
 
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid == null) {
+            FirebaseCrashlytics.getInstance().log("xp_sync_pending_missing_uid")
             markPendingSync()
             return@withLock
         }
@@ -41,7 +44,9 @@ class XpSyncManager(
             val entry = buildFullEntry(uid)
             xpLeaderboardDataSource.syncUserEntry(entry)
             clearPendingSync()
+            FirebaseCrashlytics.getInstance().log("xp_sync_after_game_success")
         } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().log("xp_sync_after_game_failed")
             FirebaseCrashlytics.getInstance().recordException(e)
             markPendingSync()
         }
@@ -51,7 +56,10 @@ class XpSyncManager(
     suspend fun syncPendingIfNeeded() {
         val pending = dataStore.data.map { it[XpSyncKeys.PENDING_SYNC] ?: false }.first()
         if (pending) {
+            FirebaseCrashlytics.getInstance().log("xp_sync_pending_detected")
             syncAfterGame()
+        } else {
+            FirebaseCrashlytics.getInstance().log("xp_sync_pending_not_required")
         }
     }
 

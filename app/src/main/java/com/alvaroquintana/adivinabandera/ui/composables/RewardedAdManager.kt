@@ -26,9 +26,14 @@ class RewardedAdState(
     private var retryCount = 0
     private val maxRetries = 2
 
+    private fun shouldReportAdError(code: Int): Boolean {
+        return code != AdRequest.ERROR_CODE_NO_FILL && code != AdRequest.ERROR_CODE_NETWORK_ERROR
+    }
+
     fun load() {
         if (isLoading || rewardedAd != null) return
         isLoading = true
+        FirebaseCrashlytics.getInstance().log("rewarded_ad_load_started:$adLocation")
 
         RewardedAd.load(
             activity,
@@ -38,9 +43,12 @@ class RewardedAdState(
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     if (BuildConfig.DEBUG) Log.d("RewardedAdState", "Failed to load: $adError")
                     FirebaseCrashlytics.getInstance().apply {
+                        log("rewarded_ad_load_failed:$adLocation:${adError.code}")
                         setCustomKey("ad_location", adLocation)
                         setCustomKey("ad_error_code", adError.code)
-                        recordException(Exception("RewardedAd load failed: ${adError.message}"))
+                        if (shouldReportAdError(adError.code)) {
+                            recordException(Exception("RewardedAd load failed: ${adError.message}"))
+                        }
                     }
                     Analytics.analyticsAdFailedToLoad(
                         Analytics.AD_TYPE_REWARDED, adLocation, adError.message
@@ -56,6 +64,7 @@ class RewardedAdState(
 
                 override fun onAdLoaded(ad: RewardedAd) {
                     if (BuildConfig.DEBUG) Log.d("RewardedAdState", "Ad was loaded for $adLocation")
+                    FirebaseCrashlytics.getInstance().log("rewarded_ad_load_success:$adLocation")
                     rewardedAd = ad
                     isLoading = false
                     retryCount = 0
@@ -67,18 +76,27 @@ class RewardedAdState(
     fun show() {
         val ad = rewardedAd
         if (ad != null) {
+            FirebaseCrashlytics.getInstance().log("rewarded_ad_show_requested:$adLocation")
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdShowedFullScreenContent() {
+                    FirebaseCrashlytics.getInstance().log("rewarded_ad_show_success:$adLocation")
                     Analytics.analyticsAdImpression(Analytics.AD_TYPE_REWARDED, adLocation)
                 }
 
                 override fun onAdDismissedFullScreenContent() {
+                    FirebaseCrashlytics.getInstance().log("rewarded_ad_dismissed:$adLocation")
                     rewardedAd = null
                     load()
                 }
 
                 override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
                     if (BuildConfig.DEBUG) Log.d("RewardedAdState", "Failed to show: $adError")
+                    FirebaseCrashlytics.getInstance().apply {
+                        log("rewarded_ad_show_failed:$adLocation:${adError.code}")
+                        if (shouldReportAdError(adError.code)) {
+                            recordException(Exception("RewardedAd show failed: ${adError.message}"))
+                        }
+                    }
                     rewardedAd = null
                     load()
                 }
@@ -93,6 +111,7 @@ class RewardedAdState(
             }
         } else {
             if (BuildConfig.DEBUG) Log.d("RewardedAdState", "The rewarded ad wasn't ready yet, reloading.")
+            FirebaseCrashlytics.getInstance().log("rewarded_ad_not_ready_reloading:$adLocation")
             load()
         }
     }
