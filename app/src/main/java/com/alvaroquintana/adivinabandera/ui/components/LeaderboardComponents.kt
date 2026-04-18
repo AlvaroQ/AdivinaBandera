@@ -3,9 +3,13 @@ package com.alvaroquintana.adivinabandera.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -91,24 +95,19 @@ fun LeaderboardItem(
         else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     }
 
-    val surfaceColor = when (position) {
-        1 -> GameGold.copy(alpha = 0.08f)
-        2 -> GameSilver.copy(alpha = 0.08f)
-        3 -> GameBronze.copy(alpha = 0.08f)
-        else -> MaterialTheme.colorScheme.surface
-    }
-
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = surfaceColor,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 1.dp,
         border = if (position <= 3) BorderStroke(2.dp, podiumColor) else null
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .defaultMinSize(minHeight = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -117,19 +116,28 @@ fun LeaderboardItem(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = podiumColor,
-                modifier = Modifier.width(40.dp)
+                modifier = Modifier
+                    .width(40.dp)
+                    .align(Alignment.CenterVertically)
             )
 
             Icon(
                 imageVector = Icons.Rounded.Person,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(20.dp)
+                    .align(Alignment.CenterVertically)
             )
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = name,
                     fontFamily = DynaPuffFamily,
@@ -146,7 +154,11 @@ fun LeaderboardItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = scoreText,
                     fontFamily = DynaPuffSemiCondensedFamily,

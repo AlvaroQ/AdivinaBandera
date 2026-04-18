@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Snackbar
@@ -53,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alvaroquintana.adivinabandera.ui.components.CurrencyDisplay
+import com.alvaroquintana.adivinabandera.ui.components.LoadingState
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffSemiCondensedFamily
 import com.alvaroquintana.adivinabandera.ui.theme.GameGold
@@ -89,12 +89,7 @@ fun ShopScreen(
             .background(getBackgroundGradient())
     ) {
         if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
+            LoadingState()
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Header con balance y boton volver

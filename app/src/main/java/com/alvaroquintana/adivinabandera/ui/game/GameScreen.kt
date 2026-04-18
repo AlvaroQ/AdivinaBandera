@@ -223,8 +223,10 @@ fun GameScreen(
                                     flagBase64 = flagBase64,
                                     questionNumber = stage,
                                     totalQuestions = TOTAL_COUNTRIES,
-                                    modifier = Modifier.fillMaxSize(),
-                                    imageContentScale = ContentScale.Fit
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp),
+                                    imageContentScale = ContentScale.Crop
                                 )
                             }
                         }

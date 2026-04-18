@@ -4,6 +4,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,10 +61,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import android.graphics.Bitmap
 import android.net.Uri
+import com.alvaroquintana.adivinabandera.ui.theme.DarkGeoBorder
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffSemiCondensedFamily
 import com.alvaroquintana.adivinabandera.ui.theme.ElevationTokens
 import com.alvaroquintana.adivinabandera.ui.theme.GameGold
+import com.alvaroquintana.adivinabandera.ui.theme.GeoNavySoft
 import com.alvaroquintana.adivinabandera.ui.theme.GeoNavySoftLight
 import com.alvaroquintana.adivinabandera.ui.theme.LocalWindowSizeClass
 import com.alvaroquintana.adivinabandera.ui.theme.getBackgroundGradient
@@ -490,48 +495,79 @@ private fun ChallengeStatsCard(
     }
 }
 
-// ── XpLeaderboardButton (ElevatedCard clickable) ──────────────────────────────
+// ── XpLeaderboardButton (gradient CTA matching PrimaryPlayHero style) ─────────
 @Composable
 private fun XpLeaderboardButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val accentColor = profileAccentColor()
+    val isDark = isAppInDarkTheme()
 
-    ElevatedCard(
+    val backgroundBrush = if (isDark) {
+        Brush.verticalGradient(listOf(Color(0xFF0E1B38), Color(0xFF1A2A4A)))
+    } else {
+        Brush.verticalGradient(listOf(GeoNavySoft, GeoNavySoftLight))
+    }
+
+    Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = accentColor.copy(alpha = 0.16f)
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = ElevationTokens.Level2)
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = if (isDark) 0.dp else 12.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = Color(0x401A3B6D)
+            )
+            .then(
+                if (isDark) Modifier.border(1.dp, DarkGeoBorder, RoundedCornerShape(20.dp))
+                else Modifier
+            ),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .background(backgroundBrush)
+                .padding(horizontal = 18.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Icon(
-                imageVector = Icons.Rounded.Leaderboard,
-                contentDescription = null,
-                tint = accentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = "Ver ranking mundial de XP",
-                fontFamily = DynaPuffFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.weight(1f)
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        color = Color.White.copy(alpha = 0.18f),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Leaderboard,
+                    contentDescription = null,
+                    tint = GameGold,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Ranking mundial de XP",
+                    fontFamily = DynaPuffFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = "Compite con jugadores de todo el mundo",
+                    fontFamily = DynaPuffSemiCondensedFamily,
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.75f)
+                )
+            }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = Color.White.copy(alpha = 0.85f),
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -719,7 +755,7 @@ private fun UnlockedAchievementItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = achievement.icon, fontSize = 26.sp)
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.weight(1f))
                 Text(
                     text = achievementName(achievement),
                     fontFamily = DynaPuffFamily,
@@ -731,7 +767,6 @@ private fun UnlockedAchievementItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(Modifier.weight(1f))
-                Spacer(Modifier.height(4.dp))
                 Text(
                     text = "+${achievement.xpReward} XP",
                     fontFamily = DynaPuffSemiCondensedFamily,
@@ -772,7 +807,7 @@ private fun LockedAchievementItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
                 modifier = Modifier.size(26.dp)
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.weight(1f))
             Text(
                 text = achievementName(achievement),
                 fontFamily = DynaPuffFamily,
@@ -784,7 +819,6 @@ private fun LockedAchievementItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.weight(1f))
-            Spacer(Modifier.height(4.dp))
             Text(
                 text = "+${achievement.xpReward} XP",
                 fontFamily = DynaPuffSemiCondensedFamily,

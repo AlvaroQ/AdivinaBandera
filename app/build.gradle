@@ -39,7 +39,6 @@ android {
             resValue 'string', 'admob_id', getAdmobAppId()
             resValue 'string', 'BANNER_GAME', getAdmobBannerTestId()
             resValue 'string', 'BANNER_RANKING', getAdmobBannerTestId()
-            resValue 'string', 'BANNER_INFO', getAdmobBannerTestId()
             resValue 'string', 'BONIFICADO_GAME', getAdmobBonificadoTestId()
             enableUnitTestCoverage true
             enableAndroidTestCoverage true
@@ -58,7 +57,6 @@ android {
             resValue 'string', 'admob_id', getAdmobAppId()
             resValue 'string', 'BANNER_GAME', getAdmobBannerGameId()
             resValue 'string', 'BANNER_RANKING', getAdmobBannerRankingId()
-            resValue 'string', 'BANNER_INFO', getAdmobBannerInfoId()
             resValue 'string', 'BONIFICADO_GAME', getAdmobBonificadoGameId()
         }
     }
@@ -170,71 +168,41 @@ configurations.configureEach {
 import groovy.xml.XmlParser
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// KEYS ADMOB TEST
-def getAdmobBannerTestId() {
+def readSecret(String key) {
     try {
         def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_test_id' }.text()
-    } catch(e) {
-        println(e)
+        def node = new XmlParser().parse(stringsFile).string.find { it.@name == key }
+        if (node == null) {
+            println("[WARN] Missing secret key: ${key} in app/secrets/secrets.xml")
+            return ""
+        }
+        return node.text()
+    } catch (Exception e) {
+        println("[WARN] Unable to read secret key '${key}': ${e.message}")
         return ""
     }
 }
+
+// KEYS ADMOB TEST
+def getAdmobBannerTestId() {
+    return readSecret('admob_banner_test_id')
+}
 def getAdmobBonificadoTestId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_bonificado_test_id' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
+    return readSecret('admob_bonificado_test_id')
 }
 
 // KEYS ADMOB PRODUCTION
 def getAdmobBannerGameId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_game' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
+    return readSecret('admob_banner_game')
 }
 def getAdmobBannerRankingId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_ranking' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
-}
-def getAdmobBannerInfoId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_banner_info' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
+    return readSecret('admob_banner_ranking')
 }
 def getAdmobBonificadoGameId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_bonificado_game' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
+    return readSecret('admob_bonificado_game')
 }
 
 // KEY ADMOB APP ID
 def getAdmobAppId() {
-    try {
-        def stringsFile = file("./secrets/secrets.xml")
-        return new XmlParser().parse(stringsFile).string.find { it.@name.equals 'admob_id' }.text()
-    } catch(e) {
-        println(e)
-        return ""
-    }
+    return readSecret('admob_id')
 }

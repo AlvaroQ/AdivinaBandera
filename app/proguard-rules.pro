@@ -22,10 +22,23 @@
 -keepattributes EnclosingMethod
 -keepattributes InnerClasses
 
-# Firebase Realtime Database deserializes these models reflectively.
+# Firebase Realtime Database / Firestore deserialize these models reflectively.
 -keep class com.alvaroquintana.domain.Country { *; }
 -keep class com.alvaroquintana.domain.Currency { *; }
 -keep class com.alvaroquintana.domain.Language { *; }
+-keep class com.alvaroquintana.domain.User { *; }
+-keepclassmembers class com.alvaroquintana.domain.User {
+    <init>();
+    <fields>;
+    public *** get*();
+    public void set*(***);
+}
+
+# Firebase RTDB DTOs — reflective deserialization via getValue(Class)
+-keep class com.alvaroquintana.adivinabandera.datasource.CountryFirebaseDto { *; }
+-keep class com.alvaroquintana.adivinabandera.datasource.SubdivisionFirebaseDto { *; }
+-keep class com.alvaroquintana.adivinabandera.datasource.FlagFirebaseDto { *; }
+-keep class com.alvaroquintana.adivinabandera.datasource.GameFirebaseDto { *; }
 
 # Crashlytics needs line tables + mapping; avoid leaking real source file names.
 -keepattributes LineNumberTable

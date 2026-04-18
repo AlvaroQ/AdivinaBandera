@@ -240,8 +240,8 @@ class StreakRulesTest {
 
         val result = StreakRules.checkStreak(state, today, yesterday) as StreakCheckResult.StreakContinued
 
-        // Dia 7 completado: se gana 1 freeze
-        assertEquals(1, result.newState.freezeTokens)
+        // Dia 7 completado: 1 freeze por ciclo + 1 por milestone de 7 dias
+        assertEquals(2, result.newState.freezeTokens)
     }
 
     @Test
@@ -458,7 +458,7 @@ class StreakRulesTest {
 
         assertTrue(result.reward.isMilestone)
         assertEquals(30, result.reward.milestoneDay)
-        assertEquals(1010, result.reward.xpBonus) // 10 (ciclo dia 2) + 1000
+        assertEquals(1015, result.reward.xpBonus) // 15 (ciclo dia 2) + 1000
     }
 
     @Test

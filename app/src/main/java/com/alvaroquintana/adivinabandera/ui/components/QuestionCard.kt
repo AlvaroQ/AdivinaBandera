@@ -22,7 +22,7 @@ fun QuestionCard(
     questionNumber: Int,
     totalQuestions: Int,
     modifier: Modifier = Modifier,
-    imageContentScale: ContentScale = ContentScale.Fit
+    imageContentScale: ContentScale = ContentScale.Crop
 ) {
     Surface(
         modifier = modifier,
