@@ -34,9 +34,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.ui.theme.DarkAccent
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffSemiCondensedFamily
@@ -150,7 +152,7 @@ fun StreakWidget(
 
                     Column {
                         Text(
-                            text = "${streakState.currentStreak} dias",
+                            text = formatStreakDayCount(streakState.currentStreak),
                             fontFamily = DynaPuffFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
@@ -158,7 +160,7 @@ fun StreakWidget(
                             else Color.Black.copy(alpha = 0.5f)
                         )
                         Text(
-                            text = "Racha actual",
+                            text = stringResource(R.string.streak_widget_current_label),
                             fontFamily = DynaPuffSemiCondensedFamily,
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Black.copy(alpha = 0.6f)
@@ -182,7 +184,7 @@ fun StreakWidget(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Hoy jugaste",
+                                    text = stringResource(R.string.streak_widget_played_today),
                                     fontFamily = DynaPuffSemiCondensedFamily,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = GameGreen
@@ -191,7 +193,7 @@ fun StreakWidget(
                         }
                         isAtRisk -> {
                             Text(
-                                text = "Racha en riesgo",
+                                text = stringResource(R.string.streak_widget_at_risk),
                                 fontFamily = DynaPuffSemiCondensedFamily,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = GameGold,
@@ -200,7 +202,7 @@ fun StreakWidget(
                         }
                         else -> {
                             Text(
-                                text = "Juga hoy",
+                                text = stringResource(R.string.streak_widget_play_today),
                                 fontFamily = DynaPuffSemiCondensedFamily,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
@@ -221,7 +223,10 @@ fun StreakWidget(
                             }
                             if (streakState.freezeTokens > 3) {
                                 Text(
-                                    text = "+${streakState.freezeTokens - 3}",
+                                    text = stringResource(
+                                        R.string.streak_widget_extra_tokens,
+                                        streakState.freezeTokens - 3
+                                    ),
                                     fontFamily = DynaPuffSemiCondensedFamily,
                                     style = MaterialTheme.typography.labelSmall,
                                      color = Color.Black.copy(alpha = 0.6f)
@@ -244,7 +249,10 @@ fun StreakWidget(
             if (streakState.bestStreak > 0) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Mejor racha: ${streakState.bestStreak} dias",
+                    text = stringResource(
+                        R.string.streak_widget_best_streak,
+                        formatStreakDayCount(streakState.bestStreak)
+                    ),
                     fontFamily = DynaPuffSemiCondensedFamily,
                     style = MaterialTheme.typography.labelSmall,
                     color = GameGold.copy(alpha = 0.8f),
@@ -254,6 +262,13 @@ fun StreakWidget(
         }
     }
 }
+
+@Composable
+private fun formatStreakDayCount(dayCount: Int): String = stringResource(
+    id = if (dayCount == 1) R.string.streak_day_count_singular
+    else R.string.streak_day_count_plural,
+    formatArgs = arrayOf(dayCount)
+)
 
 /**
  * Fila de 7 puntos que visualiza el progreso del ciclo semanal.

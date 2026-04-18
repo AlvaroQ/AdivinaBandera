@@ -37,11 +37,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alvaroquintana.adivinabandera.ui.theme.DarkSurfaceVar
+import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffSemiCondensedFamily
 import com.alvaroquintana.adivinabandera.ui.theme.GameGold
@@ -77,7 +78,7 @@ fun StreakCelebrationDialog(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "Continuar",
+                    text = stringResource(R.string.streak_dialog_continue),
                     fontFamily = DynaPuffFamily,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -170,13 +171,23 @@ private fun StreakContinuedContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     val titulo = if (isMilestone) {
-        "${reward.milestoneDay} dias seguidos"
+        stringResource(
+            R.string.streak_dialog_milestone_days,
+            formatStreakDayCount(reward.milestoneDay)
+        )
     } else {
-        "Racha de ${state.currentStreak} dias"
+        stringResource(
+            R.string.streak_dialog_current_streak_title,
+            formatStreakDayCount(state.currentStreak)
+        )
     }
 
     Text(
-        text = if (isMilestone) "Hito alcanzado" else "Racha continua",
+        text = if (isMilestone) {
+            stringResource(R.string.streak_dialog_milestone_label)
+        } else {
+            stringResource(R.string.streak_dialog_continued_label)
+        },
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.labelLarge,
         color = GameGold,
@@ -209,7 +220,14 @@ private fun StreakContinuedContent(
             Text(text = "❄", fontSize = 18.sp)
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "+${reward.freezeTokens} token${if (reward.freezeTokens > 1) "s" else ""} de congelamiento",
+                text = stringResource(
+                    id = if (reward.freezeTokens == 1) {
+                        R.string.streak_dialog_freeze_reward_single
+                    } else {
+                        R.string.streak_dialog_freeze_reward_plural
+                    },
+                    formatArgs = arrayOf(reward.freezeTokens)
+                ),
                 fontFamily = DynaPuffSemiCondensedFamily,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
@@ -253,7 +271,7 @@ private fun StreakSavedContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(
-        text = "Racha salvada",
+        text = stringResource(R.string.streak_dialog_saved_label),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
@@ -263,7 +281,7 @@ private fun StreakSavedContent(
     Spacer(modifier = Modifier.height(4.dp))
 
     Text(
-        text = "${state.currentStreak} dias",
+        text = formatStreakDayCount(state.currentStreak),
         fontFamily = DynaPuffFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
@@ -274,7 +292,7 @@ private fun StreakSavedContent(
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Usaste un token de congelamiento",
+        text = stringResource(R.string.streak_dialog_freeze_used),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -284,7 +302,14 @@ private fun StreakSavedContent(
     if (state.freezeTokens > 0) {
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Tokens restantes: ${state.freezeTokens} ❄",
+            text = stringResource(
+                id = if (state.freezeTokens == 1) {
+                    R.string.streak_dialog_freeze_remaining_single
+                } else {
+                    R.string.streak_dialog_freeze_remaining_plural
+                },
+                formatArgs = arrayOf(state.freezeTokens)
+            ),
             fontFamily = DynaPuffSemiCondensedFamily,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
@@ -328,7 +353,7 @@ private fun StreakBrokenContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(
-        text = "Racha perdida",
+        text = stringResource(R.string.streak_dialog_broken_label),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.labelLarge,
         color = GameRed,
@@ -338,7 +363,10 @@ private fun StreakBrokenContent(
     Spacer(modifier = Modifier.height(4.dp))
 
     Text(
-        text = "Racha anterior: ${result.previousStreak} dias",
+        text = stringResource(
+            R.string.streak_dialog_previous_streak,
+            formatStreakDayCount(result.previousStreak)
+        ),
         fontFamily = DynaPuffFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
@@ -360,7 +388,7 @@ private fun StreakBrokenContent(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "Nueva racha iniciada",
+            text = stringResource(R.string.streak_dialog_new_streak_started),
             fontFamily = DynaPuffFamily,
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
@@ -372,7 +400,7 @@ private fun StreakBrokenContent(
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Juga todos los dias para construir tu racha",
+        text = stringResource(R.string.streak_dialog_rebuild_message),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -400,7 +428,7 @@ private fun NewStreakContent(glowScale: Float) {
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(
-        text = "Primera racha",
+        text = stringResource(R.string.streak_dialog_first_streak_label),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.labelLarge,
         color = GameGreen,
@@ -410,7 +438,7 @@ private fun NewStreakContent(glowScale: Float) {
     Spacer(modifier = Modifier.height(4.dp))
 
     Text(
-        text = "Dia 1",
+        text = stringResource(R.string.streak_dialog_day_one),
         fontFamily = DynaPuffFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
@@ -421,7 +449,7 @@ private fun NewStreakContent(glowScale: Float) {
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-        text = "Juga cada dia para ganar recompensas",
+        text = stringResource(R.string.streak_dialog_new_streak_message),
         fontFamily = DynaPuffSemiCondensedFamily,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -443,7 +471,7 @@ private fun NewStreakContent(glowScale: Float) {
             .padding(12.dp)
     ) {
         Text(
-            text = "7 dias seguidos = token ❄ + bonus XP",
+            text = stringResource(R.string.streak_dialog_weekly_reward_summary),
             fontFamily = DynaPuffSemiCondensedFamily,
             style = MaterialTheme.typography.labelSmall,
             color = GameGreen.copy(alpha = 0.8f),
@@ -496,7 +524,7 @@ private fun XpBonusBadge(xpBonus: Int, multiplier: Float) {
         Text(text = "\u2B50", fontSize = 18.sp) // estrella
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "+$xpBonus XP",
+            text = stringResource(R.string.streak_dialog_xp_bonus, xpBonus),
             fontFamily = DynaPuffFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
@@ -505,7 +533,10 @@ private fun XpBonusBadge(xpBonus: Int, multiplier: Float) {
         if (multiplier > 1f) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "x${String.format("%.1f", multiplier)}",
+                text = stringResource(
+                    R.string.streak_dialog_multiplier_label,
+                    String.format("%.1f", multiplier)
+                ),
                 fontFamily = DynaPuffSemiCondensedFamily,
                 style = MaterialTheme.typography.bodySmall,
                 color = GameGold.copy(alpha = 0.8f)
@@ -524,7 +555,7 @@ private fun CycleProgressDotsCompact(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Ciclo:",
+            text = stringResource(R.string.streak_cycle_label),
             fontFamily = DynaPuffSemiCondensedFamily,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -551,3 +582,10 @@ private fun CycleProgressDotsCompact(
         }
     }
 }
+
+@Composable
+private fun formatStreakDayCount(dayCount: Int): String = stringResource(
+    id = if (dayCount == 1) R.string.streak_day_count_singular
+    else R.string.streak_day_count_plural,
+    formatArgs = arrayOf(dayCount)
+)

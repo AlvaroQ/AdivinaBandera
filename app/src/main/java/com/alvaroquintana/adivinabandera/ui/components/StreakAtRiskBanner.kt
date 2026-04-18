@@ -30,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alvaroquintana.adivinabandera.R
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffFamily
 import com.alvaroquintana.adivinabandera.ui.theme.DynaPuffSemiCondensedFamily
 import com.alvaroquintana.adivinabandera.ui.theme.GameGold
@@ -64,9 +66,9 @@ fun StreakAtRiskBanner(
     )
 
     val message = if (freezeTokens > 0) {
-        "Tenes $freezeTokens ❄ para protegerla"
+        stringResource(R.string.streak_at_risk_with_tokens, freezeTokens)
     } else {
-        "Juga hoy para no perderla"
+        stringResource(R.string.streak_at_risk_without_tokens)
     }
 
     Box(
@@ -123,7 +125,7 @@ fun StreakAtRiskBanner(
             // Textos
             Column {
                 Text(
-                    text = "Tu racha de $currentStreak dias esta en riesgo",
+                    text = stringResource(R.string.streak_at_risk_title, currentStreak),
                     fontFamily = DynaPuffFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
