@@ -15,6 +15,7 @@ import com.alvaroquintana.domain.challenge.ChallengeStats
 import com.alvaroquintana.domain.challenge.ChallengeType
 import com.alvaroquintana.domain.challenge.DailyChallenge
 import com.alvaroquintana.domain.challenge.DailyChallengeState
+import com.alvaroquintana.usecases.engagement.DailyChallengeService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -43,7 +44,7 @@ private val Context.challengeDataStore: DataStore<Preferences> by preferencesDat
  * Las funciones privadas que operan dentro del lock NO adquieren el mutex nuevamente
  * para evitar deadlocks (Kotlin Mutex NO es reentrant).
  */
-class DailyChallengeManager(private val context: Context) {
+class DailyChallengeManager(private val context: Context) : DailyChallengeService {
 
     private val dataStore get() = context.challengeDataStore
     private val mutex = Mutex()
@@ -75,7 +76,7 @@ class DailyChallengeManager(private val context: Context) {
      * Procesa un ChallengeEvent y retorna las completaciones ocurridas.
      * Acredita XP de desafios via ProgressionManager si corresponde.
      */
-    suspend fun processEvent(event: ChallengeEvent, playerLevel: Int = 1): ChallengeCompletionResult = mutex.withLock {
+    override suspend fun processEvent(event: ChallengeEvent, playerLevel: Int): ChallengeCompletionResult = mutex.withLock {
         val state = loadOrGenerateState(playerLevel)
         val completedBefore = state.challenges.filter { it.isCompleted }.map { it.id }.toSet()
         val weeklyWasCompleted = state.weeklyChallenge?.isCompleted == true

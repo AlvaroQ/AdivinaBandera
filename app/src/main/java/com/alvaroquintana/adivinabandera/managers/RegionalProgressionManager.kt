@@ -9,6 +9,7 @@ import com.alvaroquintana.domain.REGIONAL_UNLOCK_THRESHOLD
 import com.alvaroquintana.domain.regionalAlpha2
 import com.alvaroquintana.domain.regionalChain
 import com.alvaroquintana.domain.regionalPrerequisite
+import com.alvaroquintana.usecases.engagement.RegionalProgressionService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -18,16 +19,18 @@ import kotlinx.coroutines.sync.withLock
  * Trackea aciertos por pais para el chain de modos regionales.
  * El siguiente eslabon se desbloquea cuando el anterior alcanza [REGIONAL_UNLOCK_THRESHOLD] aciertos.
  */
-class RegionalProgressionManager(private val dataStore: DataStore<Preferences>) {
+class RegionalProgressionManager(private val dataStore: DataStore<Preferences>) : RegionalProgressionService {
 
     private val mutex = Mutex()
 
     /** Suma un acierto al contador del pais dado (alpha2). No hace nada si el alpha2 no esta mapeado. */
-    suspend fun recordCorrectAnswer(alpha2: String) = mutex.withLock {
-        val key = keyFor(alpha2) ?: return@withLock
-        dataStore.edit { prefs ->
-            val current = prefs[key] ?: 0
-            prefs[key] = current + 1
+    override suspend fun recordCorrectAnswer(alpha2: String) {
+        mutex.withLock {
+            val key = keyFor(alpha2) ?: return@withLock
+            dataStore.edit { prefs ->
+                val current = prefs[key] ?: 0
+                prefs[key] = current + 1
+            }
         }
     }
 

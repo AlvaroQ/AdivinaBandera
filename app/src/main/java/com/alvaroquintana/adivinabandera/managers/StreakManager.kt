@@ -7,6 +7,7 @@ import com.alvaroquintana.adivinabandera.common.DataStoreKeys.StreakKeys
 import com.alvaroquintana.domain.StreakCheckResult
 import com.alvaroquintana.domain.StreakRules
 import com.alvaroquintana.domain.StreakState
+import com.alvaroquintana.usecases.engagement.StreakService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,7 +29,7 @@ import java.util.Locale
  *
  * Registrado como Koin single en appModule.
  */
-class StreakManager(private val dataStore: DataStore<Preferences>) {
+class StreakManager(private val dataStore: DataStore<Preferences>) : StreakService {
 
     private val mutex = Mutex()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -39,7 +40,7 @@ class StreakManager(private val dataStore: DataStore<Preferences>) {
      *
      * @return StreakCheckResult describiendo que ocurrio (continua, rota, salvada, etc.)
      */
-    suspend fun onGameCompleted(): StreakCheckResult = mutex.withLock {
+    override suspend fun onGameCompleted(): StreakCheckResult = mutex.withLock {
         val state = readState()
         val today = todayDate()
         val yesterday = yesterdayDate()

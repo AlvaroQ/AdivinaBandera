@@ -8,7 +8,6 @@ import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.cosmetics.BanderaCatalog
 import com.alvaroquintana.adivinabandera.datasource.DataBaseSourceImpl
 import com.alvaroquintana.adivinabandera.datasource.FirestoreDataSourceImpl
-import com.alvaroquintana.adivinabandera.datasource.GameResultProcessorImpl
 import com.alvaroquintana.adivinabandera.datasource.PreferencesDataSourceImpl
 import com.alvaroquintana.adivinabandera.datasource.XpLeaderboardDataSourceImpl
 import com.alvaroquintana.adivinabandera.managers.AchievementManager
@@ -23,7 +22,6 @@ import com.alvaroquintana.adivinabandera.managers.StreakManager
 import com.alvaroquintana.adivinabandera.managers.UnlockableCatalog
 import com.alvaroquintana.adivinabandera.managers.UnlockablesManager
 import com.alvaroquintana.adivinabandera.managers.XpSyncManager
-import com.alvaroquintana.data.datasource.GameResultProcessorDataSource
 import com.alvaroquintana.data.datasource.XpLeaderboardDataSource
 import com.alvaroquintana.adivinabandera.datasource.db.AppDatabase
 import com.alvaroquintana.adivinabandera.ui.game.GameViewModel
@@ -38,7 +36,9 @@ import com.alvaroquintana.data.datasource.DataBaseSource
 import com.alvaroquintana.data.datasource.FirestoreDataSource
 import com.alvaroquintana.data.datasource.PreferencesDataSource
 import com.alvaroquintana.data.repository.CountryRepository
+import com.alvaroquintana.data.repository.CountryRepositoryImpl
 import com.alvaroquintana.data.repository.RankingRepository
+import com.alvaroquintana.data.repository.RankingRepositoryImpl
 import com.alvaroquintana.usecases.GetCountryById
 import com.alvaroquintana.usecases.GetCountryList
 import com.alvaroquintana.usecases.GetRandomCountries
@@ -49,9 +49,21 @@ import com.alvaroquintana.usecases.GetRankingScore
 import com.alvaroquintana.usecases.GetRecordScore
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
 import com.alvaroquintana.usecases.GetXpLeaderboardUseCase
+import com.alvaroquintana.adivinabandera.utils.Constants
 import com.alvaroquintana.usecases.ProcessGameResultUseCase
+import com.alvaroquintana.usecases.RecordAnswerUseCase
 import com.alvaroquintana.usecases.SaveTopScore
 import com.alvaroquintana.usecases.SyncUserXpUseCase
+import com.alvaroquintana.usecases.question.QuestionGeneratorFactory
+import com.alvaroquintana.usecases.engagement.AchievementService
+import com.alvaroquintana.usecases.engagement.CountryMasteryService
+import com.alvaroquintana.usecases.engagement.CurrencyService
+import com.alvaroquintana.usecases.engagement.DailyChallengeService
+import com.alvaroquintana.usecases.engagement.GameStatsService
+import com.alvaroquintana.usecases.engagement.ProgressionService
+import com.alvaroquintana.usecases.engagement.RegionalProgressionService
+import com.alvaroquintana.usecases.engagement.StreakService
+import com.alvaroquintana.usecases.engagement.XpSyncService
 import com.google.firebase.Firebase
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.firestore
@@ -110,19 +122,30 @@ private val appModule = module {
     single<UnlockableCatalog> { BanderaCatalog }
     single { UnlockablesManager(androidContext(), get(), get()) }
 
+    // Engagement service bindings — every manager exposes a JVM-pure interface
+    // consumed by the use case layer. Concrete manager singletons above own state.
+    single<ProgressionService> { get<ProgressionManager>() }
+    single<GameStatsService> { get<GameStatsManager>() }
+    single<StreakService> { get<StreakManager>() }
+    single<AchievementService> { get<AchievementManager>() }
+    single<XpSyncService> { get<XpSyncManager>() }
+    single<DailyChallengeService> { get<DailyChallengeManager>() }
+    single<CurrencyService> { get<CurrencyManager>() }
+    single<CountryMasteryService> { get<CountryMasteryManager>() }
+    single<RegionalProgressionService> { get<RegionalProgressionManager>() }
+
     // DataSources de la capa de engagement
     factory<XpLeaderboardDataSource> { XpLeaderboardDataSourceImpl() }
-    factory<GameResultProcessorDataSource> { GameResultProcessorImpl(get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val dataModule = module {
-    factory { CountryRepository(get()) }
-    factory { RankingRepository(get()) }
+    factory<CountryRepository> { CountryRepositoryImpl(get()) }
+    factory<RankingRepository> { RankingRepositoryImpl(get()) }
 }
 
 private val scopesModule = module {
     viewModel { SelectViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> GameViewModel(get(), get(), get(), get(), get(), params.get(), get(), get(), params.getOrNull<List<Int>>() ?: emptyList()) }
+    viewModel { params -> GameViewModel(get(), get(), params.get(), params.getOrNull<List<Int>>() ?: emptyList()) }
     viewModel { ResultViewModel(get(), get(), get(), get(), get()) }
     viewModel { ShopViewModel(get(), get()) }
     viewModel { RankingViewModel(get()) }
@@ -140,8 +163,12 @@ private val scopesModule = module {
     factory { SaveTopScore(get()) }
     factory { GetRankingScore(get()) }
 
+    // Question generation strategy (stateless — factory is a cheap wrapper)
+    single { QuestionGeneratorFactory(get(), get(), get(), Constants.TOTAL_COUNTRIES) }
+
     // Use cases de engagement y XP
-    factory { ProcessGameResultUseCase(get()) }
+    factory { ProcessGameResultUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    factory { RecordAnswerUseCase(get(), get(), get(), get()) }
     factory { SyncUserXpUseCase(get()) }
     factory { GetXpLeaderboardUseCase(get()) }
     factory { GetUserGlobalRankUseCase(get()) }

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.AchievementKeys
 import com.alvaroquintana.domain.Achievement
+import com.alvaroquintana.usecases.engagement.AchievementService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -15,13 +16,13 @@ class AchievementManager(
     private val gameStatsManager: GameStatsManager,
     private val progressionManager: ProgressionManager,
     private val streakManager: StreakManager
-) {
+) : AchievementService {
 
     private val mutex = Mutex()
 
     // Verifica todos los logros y desbloquea los nuevos que correspondan
     // Retorna la lista de logros recien desbloqueados (vacia si no hay nuevos)
-    suspend fun checkAndUnlockAchievements(): List<Achievement> = mutex.withLock {
+    override suspend fun checkAndUnlockAchievements(): List<Achievement> = mutex.withLock {
         val unlockedIds = getUnlockedIds()
         val newlyUnlocked = mutableListOf<Achievement>()
 

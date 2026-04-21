@@ -22,7 +22,7 @@ class RankingRepositoryTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        repository = RankingRepository(firestoreDataSource)
+        repository = RankingRepositoryImpl(firestoreDataSource)
     }
 
     // region addRecord

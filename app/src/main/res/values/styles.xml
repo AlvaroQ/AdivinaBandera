@@ -1,5 +1,12 @@
 <resources>
-    <style name="AppTheme" parent="android:Theme.Light.NoTitleBar">
+    <!--
+        Theme base moderno: Theme.Material.Light.NoActionBar (API 21+) expone las
+        propiedades de window flags que enableEdgeToEdge necesita para controlar
+        el status bar y los iconos. El antiguo android:Theme.Light.NoTitleBar
+        (legacy API 1) forzaba un status bar negro con iconos no invertibles en
+        Android 15+, dejando el status bar ilegible en modo claro.
+    -->
+    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@android:color/white</item>
     </style>
 </resources>

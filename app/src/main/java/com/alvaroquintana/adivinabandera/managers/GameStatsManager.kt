@@ -5,35 +5,38 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.GameStatsKeys
 import com.alvaroquintana.domain.GameResult
+import com.alvaroquintana.usecases.engagement.GameStatsService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class GameStatsManager(private val dataStore: DataStore<Preferences>) {
+class GameStatsManager(private val dataStore: DataStore<Preferences>) : GameStatsService {
 
     private val mutex = Mutex()
 
     // Registra el resultado de una partida actualizando todas las estadisticas acumuladas
-    suspend fun recordGameResult(result: GameResult) = mutex.withLock {
-        dataStore.edit { prefs ->
-            val totalGames = (prefs[GameStatsKeys.TOTAL_GAMES_PLAYED] ?: 0) + 1
-            val totalCorrect = (prefs[GameStatsKeys.TOTAL_CORRECT_ANSWERS] ?: 0) + result.correctAnswers
-            val totalWrong = (prefs[GameStatsKeys.TOTAL_WRONG_ANSWERS] ?: 0) +
-                (result.totalQuestions - result.correctAnswers)
-            val currentBestStreak = prefs[GameStatsKeys.BEST_STREAK_EVER] ?: 0
-            val totalTime = (prefs[GameStatsKeys.TOTAL_TIME_PLAYED_MS] ?: 0L) + result.timePlayedMs
-            val perfectGames = (prefs[GameStatsKeys.TOTAL_PERFECT_GAMES] ?: 0) +
-                if (result.completedAllQuestions && result.correctAnswers == result.totalQuestions) 1 else 0
+    override suspend fun recordGameResult(result: GameResult) {
+        mutex.withLock {
+            dataStore.edit { prefs ->
+                val totalGames = (prefs[GameStatsKeys.TOTAL_GAMES_PLAYED] ?: 0) + 1
+                val totalCorrect = (prefs[GameStatsKeys.TOTAL_CORRECT_ANSWERS] ?: 0) + result.correctAnswers
+                val totalWrong = (prefs[GameStatsKeys.TOTAL_WRONG_ANSWERS] ?: 0) +
+                    (result.totalQuestions - result.correctAnswers)
+                val currentBestStreak = prefs[GameStatsKeys.BEST_STREAK_EVER] ?: 0
+                val totalTime = (prefs[GameStatsKeys.TOTAL_TIME_PLAYED_MS] ?: 0L) + result.timePlayedMs
+                val perfectGames = (prefs[GameStatsKeys.TOTAL_PERFECT_GAMES] ?: 0) +
+                    if (result.completedAllQuestions && result.correctAnswers == result.totalQuestions) 1 else 0
 
-            prefs[GameStatsKeys.TOTAL_GAMES_PLAYED] = totalGames
-            prefs[GameStatsKeys.TOTAL_CORRECT_ANSWERS] = totalCorrect
-            prefs[GameStatsKeys.TOTAL_WRONG_ANSWERS] = totalWrong
-            prefs[GameStatsKeys.TOTAL_TIME_PLAYED_MS] = totalTime
-            prefs[GameStatsKeys.TOTAL_PERFECT_GAMES] = perfectGames
+                prefs[GameStatsKeys.TOTAL_GAMES_PLAYED] = totalGames
+                prefs[GameStatsKeys.TOTAL_CORRECT_ANSWERS] = totalCorrect
+                prefs[GameStatsKeys.TOTAL_WRONG_ANSWERS] = totalWrong
+                prefs[GameStatsKeys.TOTAL_TIME_PLAYED_MS] = totalTime
+                prefs[GameStatsKeys.TOTAL_PERFECT_GAMES] = perfectGames
 
-            if (result.bestStreak > currentBestStreak) {
-                prefs[GameStatsKeys.BEST_STREAK_EVER] = result.bestStreak
+                if (result.bestStreak > currentBestStreak) {
+                    prefs[GameStatsKeys.BEST_STREAK_EVER] = result.bestStreak
+                }
             }
         }
     }
