@@ -6,12 +6,13 @@ import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.ProgressionKeys
 import com.alvaroquintana.domain.XpBreakdown
 import com.alvaroquintana.domain.XpLeaderboardEntry
+import com.alvaroquintana.usecases.engagement.ProgressionService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class ProgressionManager(private val dataStore: DataStore<Preferences>) {
+class ProgressionManager(private val dataStore: DataStore<Preferences>) : ProgressionService {
 
     private val mutex = Mutex()
 
@@ -65,7 +66,7 @@ class ProgressionManager(private val dataStore: DataStore<Preferences>) {
     }
 
     // Calcula el XP ganado en una partida y su desglose
-    fun calculateXp(
+    override fun calculateXp(
         correctAnswers: Int,
         bestStreak: Int,
         completedAll: Boolean
@@ -90,7 +91,7 @@ class ProgressionManager(private val dataStore: DataStore<Preferences>) {
     }
 
     // Agrega XP y retorna (nuevoXpTotal, nuevoNivel, subioDeNivel)
-    suspend fun addXp(amount: Int): Triple<Int, Int, Boolean> = mutex.withLock {
+    override suspend fun addXp(amount: Int): Triple<Int, Int, Boolean> = mutex.withLock {
         val prefs = dataStore.data.first()
         val currentXp = prefs[ProgressionKeys.TOTAL_XP] ?: 0
         val previousLevel = prefs[ProgressionKeys.CURRENT_LEVEL] ?: 1
@@ -112,10 +113,10 @@ class ProgressionManager(private val dataStore: DataStore<Preferences>) {
     suspend fun getTotalXp(): Int =
         dataStore.data.map { it[ProgressionKeys.TOTAL_XP] ?: 0 }.first()
 
-    suspend fun getCurrentLevel(): Int =
+    override suspend fun getCurrentLevel(): Int =
         dataStore.data.map { it[ProgressionKeys.CURRENT_LEVEL] ?: 1 }.first()
 
-    suspend fun getCurrentTitle(): String =
+    override suspend fun getCurrentTitle(): String =
         dataStore.data.map { it[ProgressionKeys.CURRENT_TITLE] ?: titleForLevel(1) }.first()
 
     suspend fun getNickname(): String =

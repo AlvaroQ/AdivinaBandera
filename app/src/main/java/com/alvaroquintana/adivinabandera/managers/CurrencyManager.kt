@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import com.alvaroquintana.domain.cosmetics.CurrencyBalance
+import com.alvaroquintana.usecases.engagement.CurrencyService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,7 @@ import kotlinx.coroutines.sync.withLock
  *
  * El Mutex garantiza atomicidad en operaciones de earn/spend concurrentes.
  */
-class CurrencyManager(private val context: Context) {
+class CurrencyManager(private val context: Context) : CurrencyService {
 
     private val dataStore get() = context.cosmeticsDataStore
     private val mutex = Mutex()
@@ -50,7 +51,7 @@ class CurrencyManager(private val context: Context) {
      * @param source Identificador de la fuente (ej: "game_completion", "streak_milestone") para trazabilidad.
      * @return Balance actualizado despues de la operacion.
      */
-    suspend fun earnCoins(amount: Int, source: String = ""): CurrencyBalance = mutex.withLock {
+    override suspend fun earnCoins(amount: Int, source: String): CurrencyBalance = mutex.withLock {
         dataStore.edit { prefs ->
             prefs[KEY_COINS] = (prefs[KEY_COINS] ?: 0) + amount
         }
@@ -62,7 +63,7 @@ class CurrencyManager(private val context: Context) {
      * @param source Identificador de la fuente para trazabilidad.
      * @return Balance actualizado despues de la operacion.
      */
-    suspend fun earnGems(amount: Int, source: String = ""): CurrencyBalance = mutex.withLock {
+    override suspend fun earnGems(amount: Int, source: String): CurrencyBalance = mutex.withLock {
         dataStore.edit { prefs ->
             prefs[KEY_GEMS] = (prefs[KEY_GEMS] ?: 0) + amount
         }

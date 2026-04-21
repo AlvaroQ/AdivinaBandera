@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.XpSyncKeys
 import com.alvaroquintana.data.datasource.XpLeaderboardDataSource
 import com.alvaroquintana.domain.XpLeaderboardEntry
+import com.alvaroquintana.usecases.engagement.XpSyncService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.first
@@ -18,13 +19,13 @@ class XpSyncManager(
     private val progressionManager: ProgressionManager,
     private val gameStatsManager: GameStatsManager,
     private val xpLeaderboardDataSource: XpLeaderboardDataSource
-) {
+) : XpSyncService {
 
     private val mutex = Mutex()
 
     // Sincroniza el XP del usuario tras finalizar una partida
     // Si no tiene nickname configurado, marca la sincronizacion como pendiente
-    suspend fun syncAfterGame() = mutex.withLock {
+    override suspend fun syncAfterGame() = mutex.withLock {
         FirebaseCrashlytics.getInstance().log("xp_sync_after_game_started")
         val nickname = progressionManager.getNickname()
         if (nickname.isBlank()) {

@@ -8,7 +8,6 @@ import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.cosmetics.BanderaCatalog
 import com.alvaroquintana.adivinabandera.datasource.DataBaseSourceImpl
 import com.alvaroquintana.adivinabandera.datasource.FirestoreDataSourceImpl
-import com.alvaroquintana.adivinabandera.datasource.GameResultProcessorImpl
 import com.alvaroquintana.adivinabandera.datasource.PreferencesDataSourceImpl
 import com.alvaroquintana.adivinabandera.datasource.XpLeaderboardDataSourceImpl
 import com.alvaroquintana.adivinabandera.managers.AchievementManager
@@ -23,7 +22,6 @@ import com.alvaroquintana.adivinabandera.managers.StreakManager
 import com.alvaroquintana.adivinabandera.managers.UnlockableCatalog
 import com.alvaroquintana.adivinabandera.managers.UnlockablesManager
 import com.alvaroquintana.adivinabandera.managers.XpSyncManager
-import com.alvaroquintana.data.datasource.GameResultProcessorDataSource
 import com.alvaroquintana.data.datasource.XpLeaderboardDataSource
 import com.alvaroquintana.adivinabandera.datasource.db.AppDatabase
 import com.alvaroquintana.adivinabandera.ui.game.GameViewModel
@@ -54,6 +52,13 @@ import com.alvaroquintana.usecases.GetXpLeaderboardUseCase
 import com.alvaroquintana.usecases.ProcessGameResultUseCase
 import com.alvaroquintana.usecases.SaveTopScore
 import com.alvaroquintana.usecases.SyncUserXpUseCase
+import com.alvaroquintana.usecases.engagement.AchievementService
+import com.alvaroquintana.usecases.engagement.CurrencyService
+import com.alvaroquintana.usecases.engagement.DailyChallengeService
+import com.alvaroquintana.usecases.engagement.GameStatsService
+import com.alvaroquintana.usecases.engagement.ProgressionService
+import com.alvaroquintana.usecases.engagement.StreakService
+import com.alvaroquintana.usecases.engagement.XpSyncService
 import com.google.firebase.Firebase
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.firestore
@@ -112,9 +117,18 @@ private val appModule = module {
     single<UnlockableCatalog> { BanderaCatalog }
     single { UnlockablesManager(androidContext(), get(), get()) }
 
+    // Engagement service bindings — every manager exposes a JVM-pure interface
+    // consumed by the use case layer. Concrete manager singletons above own state.
+    single<ProgressionService> { get<ProgressionManager>() }
+    single<GameStatsService> { get<GameStatsManager>() }
+    single<StreakService> { get<StreakManager>() }
+    single<AchievementService> { get<AchievementManager>() }
+    single<XpSyncService> { get<XpSyncManager>() }
+    single<DailyChallengeService> { get<DailyChallengeManager>() }
+    single<CurrencyService> { get<CurrencyManager>() }
+
     // DataSources de la capa de engagement
     factory<XpLeaderboardDataSource> { XpLeaderboardDataSourceImpl() }
-    factory<GameResultProcessorDataSource> { GameResultProcessorImpl(get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val dataModule = module {
@@ -143,7 +157,7 @@ private val scopesModule = module {
     factory { GetRankingScore(get()) }
 
     // Use cases de engagement y XP
-    factory { ProcessGameResultUseCase(get()) }
+    factory { ProcessGameResultUseCase(get(), get(), get(), get(), get(), get(), get()) }
     factory { SyncUserXpUseCase(get()) }
     factory { GetXpLeaderboardUseCase(get()) }
     factory { GetUserGlobalRankUseCase(get()) }
