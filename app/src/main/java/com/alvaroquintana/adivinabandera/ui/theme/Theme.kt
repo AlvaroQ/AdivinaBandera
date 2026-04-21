@@ -1,6 +1,9 @@
 package com.alvaroquintana.adivinabandera.ui.theme
 
-import android.app.Activity
+import android.graphics.Color as AndroidColor
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -10,9 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -104,11 +105,18 @@ fun AdivinaBanderaTheme(
 
     val view = LocalView.current
     if (!view.isInEditMode) {
+        val activity = view.context as ComponentActivity
         SideEffect {
-            val window = (view.context as Activity).window
-            @Suppress("DEPRECATION")
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            // Re-apply edge-to-edge using the APP theme (not the system's). Otherwise
+            // users on a device with dark system mode but ThemeMode.LIGHT selected
+            // inside the app end up with a dark scrim + dark icons = invisible.
+            activity.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(
+                    lightScrim = AndroidColor.TRANSPARENT,
+                    darkScrim = AndroidColor.TRANSPARENT,
+                    detectDarkMode = { darkTheme }
+                )
+            )
         }
     }
 
