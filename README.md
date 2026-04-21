@@ -12,7 +12,7 @@
 
 ## Table of Contents
 
-[About](#about) · [Screenshots](#screenshots) · [Game Modes](#game-modes) · [Tech Stack](#tech-stack) · [Architecture](#architecture) · [Features](#features) · [Design decisions](#design-decisions) · [Testing](#testing) · [Getting Started](#getting-started) · [Roadmap](#roadmap) · [Links](#links) · [License](#license)
+[About](#about) · [Screenshots](#screenshots) · [Game Modes](#game-modes) · [Tech Stack](#tech-stack) · [Architecture](#architecture) · [Features](#features) · [Design decisions](#design-decisions) · [Testing](#testing) · [Getting Started](#getting-started) · [Roadmap](#roadmap) · [Contributing](#contributing) · [Links](#links) · [License](#license)
 
 ---
 
@@ -123,7 +123,7 @@ The dependency rule is enforced by the Gradle graph itself: if `domain` tried to
 ### Content & data
 - 200+ countries with name, capital, currency, language, demonym, borders, population, area, calling codes and translations
 - Regional subdivisions for 6 countries with dedicated flag sets
-- Offline-first: Room database seeded from a Firebase Realtime Database sync on first run; subsequent plays work without network
+- Offline-first after the initial sync: Room is seeded once from Firebase Realtime Database on first launch; after that, every game query hits SQLite and the app works fully offline
 
 ### Platform
 - Light / Dark theme with Material3
@@ -165,7 +165,7 @@ The 3 daily challenges for a given user on a given date are derived from a **det
 
 Picked for faster iteration on a Kotlin-first, Compose-heavy codebase. No `kapt` / `ksp` in the DI path means shorter incremental builds, and the composable-friendly API (`koinInject()`, `koinViewModel()`) doesn't need annotation processing to reach into the UI layer. The only KSP compiler in use is Room's, which is unavoidable.
 
-**Tradeoff:** Koin resolves graphs at runtime, so a missing binding surfaces as a crash on first use rather than a red squiggle. Partial mitigation: the unit-test suite in every module exercises the DI graph for the happy-path dependencies.
+**Tradeoff:** Koin resolves graphs at runtime, so a missing binding surfaces as a crash on first use rather than a red squiggle. Discipline around module boundaries (every `di.kt` is short, and every ViewModel constructor is injected through a single `koinViewModel()` call) keeps the exposure small.
 
 ### Progressive mode unlocks
 
@@ -234,19 +234,21 @@ Run a single module:
 
 2. Drop your `google-services.json` in `app/`.
 
-3. Create `app/secrets/secrets.xml` with your AdMob keys. The debug build uses Google's official test IDs, so test values are enough to get it running:
+3. Create `app/secrets/secrets.xml` with your AdMob keys. The structure expected by `app/build.gradle` is:
 
    ```xml
    <?xml version="1.0" encoding="utf-8"?>
    <resources>
-       <string name="admob_id">ca-app-pub-3940256099942544~3347511713</string>
-       <string name="admob_banner_test_id">ca-app-pub-3940256099942544/6300978111</string>
-       <string name="admob_bonificado_test_id">ca-app-pub-3940256099942544/5224354917</string>
-       <string name="admob_banner_game">ca-app-pub-3940256099942544/6300978111</string>
-       <string name="admob_banner_ranking">ca-app-pub-3940256099942544/6300978111</string>
-       <string name="admob_bonificado_game">ca-app-pub-3940256099942544/5224354917</string>
+       <string name="admob_id">ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX</string>
+       <string name="admob_banner_test_id">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</string>
+       <string name="admob_bonificado_test_id">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</string>
+       <string name="admob_banner_game">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</string>
+       <string name="admob_banner_ranking">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</string>
+       <string name="admob_bonificado_game">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</string>
    </resources>
    ```
+
+   For a first build, Google publishes a set of always-on [AdMob test ad unit IDs](https://developers.google.com/admob/android/test-ads) that you can drop into the `*_test_id` entries. Replace them with your own production IDs before shipping a release build.
 
 4. Build the debug APK:
 
@@ -264,13 +266,31 @@ Run a single module:
 
 ## Roadmap
 
-Work that is on the table but not yet shipped:
+Planned work, not yet shipped:
 
-- **Accessibility**: high-contrast and large-text modes (PrideQuiz already has this — planned port to AdivinaBandera)
+- **Accessibility**: high-contrast theme and large-text mode
 - **Instrumented tests**: Compose UI tests for the critical screens
 - **Screenshot tests**: Roborazzi for visual regression across themes
 - **Billing**: remove-ads in-app product
 - **More languages**: French, Portuguese, Italian and German
+
+---
+
+## Contributing
+
+This repo follows **[GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)**: `main` is always deployable, and every change arrives through a pull request.
+
+1. Fork the repo (or create a branch if you have write access).
+2. Create a descriptive branch from `main`: `feature/<topic>`, `fix/<bug>`, `docs/<area>`, `chore/<task>`.
+3. Write conventional-commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `ci:`.
+4. Open a pull request against `main`. CI will run the full 204-test suite automatically.
+5. Merge only after CI is green. Prefer a merge commit for feature branches (preserves history), squash for trivial fixes.
+
+Before opening the PR locally, please run:
+
+```bash
+./gradlew test
+```
 
 ---
 
