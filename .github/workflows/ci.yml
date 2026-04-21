@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Placeholders for release signing. We never build release in CI — debug
+      # doesn't use these — but Gradle evaluates the signingConfigs block at
+      # configure time, so the properties must exist or configuration fails.
+      - name: Inject CI signing placeholders
+        run: |
+          cat >> gradle.properties <<'EOF'
+
+          ADIVINABANDERA_RELEASE_KEY_ALIAS=ci
+          ADIVINABANDERA_RELEASE_KEY_PASSWORD=ci
+          ADIVINABANDERA_RELEASE_STORE_FILE=ci-dummy.jks
+          ADIVINABANDERA_RELEASE_STORE_PASSWORD=ci
+          EOF
+
+      # AdMob secrets are read from app/secrets/secrets.xml via readSecret().
+      # The function returns "" on missing keys, but we stub the file to keep
+      # build logs clean and resValue strings non-empty.
+      - name: Generate stub secrets.xml
+        run: |
+          mkdir -p app/secrets
+          cat > app/secrets/secrets.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="admob_id">ca-app-pub-0000000000000000~0000000000</string>
+              <string name="admob_banner_test_id">ca-app-pub-0000000000000000/0000000000</string>
+              <string name="admob_bonificado_test_id">ca-app-pub-0000000000000000/0000000000</string>
+              <string name="admob_banner_game">ca-app-pub-0000000000000000/0000000000</string>
+              <string name="admob_banner_ranking">ca-app-pub-0000000000000000/0000000000</string>
+              <string name="admob_bonificado_game">ca-app-pub-0000000000000000/0000000000</string>
+          </resources>
+          EOF
+
+      # The google-services plugin requires this file at build time even for
+      # JVM unit tests. The values are structurally valid but non-functional —
+      # CI never makes real Firebase calls.
+      - name: Generate stub google-services.json
+        run: |
+          cat > app/google-services.json <<'EOF'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "adivinabandera-ci",
+              "storage_bucket": "adivinabandera-ci.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+                  "android_client_info": { "package_name": "com.alvaroquintana.adivinabandera" }
+                },
+                "oauth_client": [],
+                "api_key": [{ "current_key": "AIzaSyDummyKeyForCIBuildOnly00000000000000" }],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      - name: Unit tests
+        run: ./gradlew test --no-daemon --stacktrace
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/
+          retention-days: 7
+          if-no-files-found: ignore
