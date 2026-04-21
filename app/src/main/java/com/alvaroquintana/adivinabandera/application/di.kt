@@ -50,13 +50,16 @@ import com.alvaroquintana.usecases.GetRecordScore
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
 import com.alvaroquintana.usecases.GetXpLeaderboardUseCase
 import com.alvaroquintana.usecases.ProcessGameResultUseCase
+import com.alvaroquintana.usecases.RecordAnswerUseCase
 import com.alvaroquintana.usecases.SaveTopScore
 import com.alvaroquintana.usecases.SyncUserXpUseCase
 import com.alvaroquintana.usecases.engagement.AchievementService
+import com.alvaroquintana.usecases.engagement.CountryMasteryService
 import com.alvaroquintana.usecases.engagement.CurrencyService
 import com.alvaroquintana.usecases.engagement.DailyChallengeService
 import com.alvaroquintana.usecases.engagement.GameStatsService
 import com.alvaroquintana.usecases.engagement.ProgressionService
+import com.alvaroquintana.usecases.engagement.RegionalProgressionService
 import com.alvaroquintana.usecases.engagement.StreakService
 import com.alvaroquintana.usecases.engagement.XpSyncService
 import com.google.firebase.Firebase
@@ -126,6 +129,8 @@ private val appModule = module {
     single<XpSyncService> { get<XpSyncManager>() }
     single<DailyChallengeService> { get<DailyChallengeManager>() }
     single<CurrencyService> { get<CurrencyManager>() }
+    single<CountryMasteryService> { get<CountryMasteryManager>() }
+    single<RegionalProgressionService> { get<RegionalProgressionManager>() }
 
     // DataSources de la capa de engagement
     factory<XpLeaderboardDataSource> { XpLeaderboardDataSourceImpl() }
@@ -158,6 +163,7 @@ private val scopesModule = module {
 
     // Use cases de engagement y XP
     factory { ProcessGameResultUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    factory { RecordAnswerUseCase(get(), get(), get(), get()) }
     factory { SyncUserXpUseCase(get()) }
     factory { GetXpLeaderboardUseCase(get()) }
     factory { GetUserGlobalRankUseCase(get()) }

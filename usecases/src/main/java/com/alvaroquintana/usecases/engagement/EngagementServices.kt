@@ -44,3 +44,11 @@ interface CurrencyService {
 interface XpSyncService {
     suspend fun syncAfterGame()
 }
+
+interface CountryMasteryService {
+    suspend fun recordAnswer(alpha2Code: String, isCorrect: Boolean, gameMode: String)
+}
+
+interface RegionalProgressionService {
+    suspend fun recordCorrectAnswer(alpha2: String)
+}

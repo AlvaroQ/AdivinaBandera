@@ -2,8 +2,9 @@ package com.alvaroquintana.adivinabandera.managers
 
 import com.alvaroquintana.data.datasource.DataBaseSource
 import com.alvaroquintana.domain.CountryStats
+import com.alvaroquintana.usecases.engagement.CountryMasteryService
 
-class CountryMasteryManager(private val dataBaseSource: DataBaseSource) {
+class CountryMasteryManager(private val dataBaseSource: DataBaseSource) : CountryMasteryService {
 
     data class RegionMastery(
         val region: String,
@@ -17,7 +18,7 @@ class CountryMasteryManager(private val dataBaseSource: DataBaseSource) {
      * Actualiza timesCorrect/timesWrong y lastSeenTimestamp en la DB.
      * La primera vez que se acierta se setea firstDiscoveredTimestamp.
      */
-    suspend fun recordAnswer(alpha2Code: String, isCorrect: Boolean, gameMode: String) {
+    override suspend fun recordAnswer(alpha2Code: String, isCorrect: Boolean, gameMode: String) {
         val existing = dataBaseSource.getCountryStatByCode(alpha2Code)
         val now = System.currentTimeMillis()
         val stat = CountryStats(
