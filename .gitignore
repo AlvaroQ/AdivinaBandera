@@ -29,5 +29,12 @@ assets/country-f6ae1-export.json
 .env.*
 !.env.example
 capture/scripts/.env.example
-capture/
+capture/*
+!capture/es/
+capture/es/*
+!capture/es/image1.jpg
+!capture/es/image2.jpg
+!capture/es/image3.jpg
+!capture/es/image4.jpg
+!capture/es/image5.jpg
 .atl/skill-registry.md
