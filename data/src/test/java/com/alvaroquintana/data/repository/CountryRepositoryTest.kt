@@ -22,7 +22,7 @@ class CountryRepositoryTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
-        repository = CountryRepository(dataBaseSource)
+        repository = CountryRepositoryImpl(dataBaseSource)
     }
 
     // region getCountryById

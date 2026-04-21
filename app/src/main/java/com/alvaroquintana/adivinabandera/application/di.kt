@@ -38,7 +38,9 @@ import com.alvaroquintana.data.datasource.DataBaseSource
 import com.alvaroquintana.data.datasource.FirestoreDataSource
 import com.alvaroquintana.data.datasource.PreferencesDataSource
 import com.alvaroquintana.data.repository.CountryRepository
+import com.alvaroquintana.data.repository.CountryRepositoryImpl
 import com.alvaroquintana.data.repository.RankingRepository
+import com.alvaroquintana.data.repository.RankingRepositoryImpl
 import com.alvaroquintana.usecases.GetCountryById
 import com.alvaroquintana.usecases.GetCountryList
 import com.alvaroquintana.usecases.GetRandomCountries
@@ -116,8 +118,8 @@ private val appModule = module {
 }
 
 val dataModule = module {
-    factory { CountryRepository(get()) }
-    factory { RankingRepository(get()) }
+    factory<CountryRepository> { CountryRepositoryImpl(get()) }
+    factory<RankingRepository> { RankingRepositoryImpl(get()) }
 }
 
 private val scopesModule = module {
