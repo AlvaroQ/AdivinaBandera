@@ -49,10 +49,12 @@ import com.alvaroquintana.usecases.GetRankingScore
 import com.alvaroquintana.usecases.GetRecordScore
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
 import com.alvaroquintana.usecases.GetXpLeaderboardUseCase
+import com.alvaroquintana.adivinabandera.utils.Constants
 import com.alvaroquintana.usecases.ProcessGameResultUseCase
 import com.alvaroquintana.usecases.RecordAnswerUseCase
 import com.alvaroquintana.usecases.SaveTopScore
 import com.alvaroquintana.usecases.SyncUserXpUseCase
+import com.alvaroquintana.usecases.question.QuestionGeneratorFactory
 import com.alvaroquintana.usecases.engagement.AchievementService
 import com.alvaroquintana.usecases.engagement.CountryMasteryService
 import com.alvaroquintana.usecases.engagement.CurrencyService
@@ -143,7 +145,7 @@ val dataModule = module {
 
 private val scopesModule = module {
     viewModel { SelectViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> GameViewModel(get(), get(), get(), get(), get(), params.get(), get(), get(), params.getOrNull<List<Int>>() ?: emptyList()) }
+    viewModel { params -> GameViewModel(get(), get(), params.get(), params.getOrNull<List<Int>>() ?: emptyList()) }
     viewModel { ResultViewModel(get(), get(), get(), get(), get()) }
     viewModel { ShopViewModel(get(), get()) }
     viewModel { RankingViewModel(get()) }
@@ -160,6 +162,9 @@ private val scopesModule = module {
     factory { GetRecordScore(get()) }
     factory { SaveTopScore(get()) }
     factory { GetRankingScore(get()) }
+
+    // Question generation strategy (stateless — factory is a cheap wrapper)
+    single { QuestionGeneratorFactory(get(), get(), get(), Constants.TOTAL_COUNTRIES) }
 
     // Use cases de engagement y XP
     factory { ProcessGameResultUseCase(get(), get(), get(), get(), get(), get(), get()) }
