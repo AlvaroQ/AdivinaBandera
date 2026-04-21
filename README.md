@@ -12,13 +12,13 @@
 
 ## Table of Contents
 
-[About](#about) · [Screenshots](#screenshots) · [Game Modes](#game-modes) · [Tech Stack](#tech-stack) · [Architecture](#architecture) · [Features](#features) · [Design decisions](#design-decisions) · [Testing](#testing) · [Getting Started](#getting-started) · [Roadmap](#roadmap) · [Contributing](#contributing) · [Links](#links) · [License](#license)
+[About](#about) · [Screenshots](#screenshots) · [Game Modes](#game-modes) · [Tech Stack](#tech-stack) · [Architecture](#architecture) · [Features](#features) · [Design decisions](#design-decisions) · [Testing](#testing) · [Getting Started](#getting-started) · [Links](#links) · [License](#license)
 
 ---
 
 ## About
 
-AdivinaBandera is an Android quiz game about **world flags, capitals, currencies, populations and regional symbols**. It started as a small hobby app in 2019 and has grown into a 200+ country catalogue with 11 game modes, a progression system, a cosmetics economy and daily challenges — built with modern Kotlin, Jetpack Compose and Clean Architecture.
+AdivinaBandera is an Android quiz game about **world flags, capitals, currencies, populations and regional symbols**. It started as a small hobby app and has grown into a 200+ country catalogue with 11 game modes, a progression system, a cosmetics economy and daily challenges — built with modern Kotlin, Jetpack Compose and Clean Architecture.
 
 It is also a long-lived production codebase that doubles as a real-world reference for modular Android architecture, Koin dependency injection, Firebase-backed leaderboards and a fully offline-first data layer powered by Room.
 
@@ -103,75 +103,24 @@ The dependency rule is enforced by the Gradle graph itself: if `domain` tried to
 
 ## Features
 
-### Gameplay
-- 11 game modes with level-gated unlocks (see [Game Modes](#game-modes))
-- Extra lives system — earn up to three lives per game, lose one on every wrong answer
-- In-game streak counter with motivational messages at 3, 5, 10, 15 and every 5 correct
-
-### Progression
-- **50 XP levels**, dynamic titles from *Novato* to *Leyenda*, progressive thresholds up to 393,000 XP
-- **Daily streaks** with freeze-token mechanic to save a broken streak
-- **3 daily challenges** regenerated at local midnight, deterministic per user + date so two devices of the same player show the same challenges
-- **20+ achievements** covering games played, accuracy, streaks, perfect games and milestone daily streaks
-
-### Economy & cosmetics
-- **Dual currency**: *coins* (common, earned from play) and *gems* (rare, awarded for achievements and streaks)
-- **17 unlockable cosmetics** across 5 categories: profile frames, title badges, answer card themes, celebration animations, alternative app icons
-- **Mystery Box** awarded every 10 games completed — XP boost, coin bonus or freeze token
-- **Country Mastery** tracking — per-country accuracy and last-seen timestamp persisted via Room, used to surface weaker flags more often
-
-### Content & data
-- 200+ countries with name, capital, currency, language, demonym, borders, population, area, calling codes and translations
-- Regional subdivisions for 6 countries with dedicated flag sets
-- Offline-first after the initial sync: Room is seeded once from Firebase Realtime Database on first launch; after that, every game query hits SQLite and the app works fully offline
-
-### Platform
-- Light / Dark theme with Material3
-- Spanish and English localization
-- AdMob **banner** and **rewarded** ads (consent handled via Google's UMP SDK)
-- Daily reminder notification scheduled through WorkManager (`ExistingPeriodicWorkPolicy.KEEP`)
+- **Gameplay** — 11 level-gated modes, extra-lives system (up to 3 per game), in-game streak counter with motivational messages.
+- **Progression** — 50 XP levels up to 393k XP with dynamic titles, daily streaks with freeze tokens, 3 deterministic daily challenges per user/date, 20+ achievements.
+- **Economy & cosmetics** — dual currency (*coins* + *gems*), 17 unlockable cosmetics across 5 categories, Mystery Box every 10 games, per-country mastery tracking.
+- **Content & data** — 200+ countries (capital, currency, language, demonym, borders, population…), regional subdivisions for 6 countries, offline-first once Room is seeded from Firebase.
+- **Platform** — Material3 light/dark themes, ES/EN localization, AdMob banner + rewarded with UMP consent, daily reminders via WorkManager.
 
 ---
 
 ## Design decisions
 
-Short rationale behind the less-obvious architectural choices. Every decision is a tradeoff — these notes explain what was gained and what was given up.
+Short rationale behind the less-obvious architectural choices — what was gained, what was given up.
 
-### Room as local source of truth, Firebase as the seed
-
-Country and subdivision data is **synced once** from Firebase Realtime Database into a Room database, and every subsequent query hits Room. This means:
-
-- The quiz is fully playable offline after the first launch.
-- Random-draw queries (`GetRandomSubdivisions`, country lookups by calling code or language) run on SQLite instead of issuing Firestore reads — dramatically cheaper at scale and with predictable latency.
-- A `SyncMetadata` row tracks the last successful sync, so incremental updates can be pulled without re-downloading everything.
-
-**Tradeoff:** new content isn't instantly available — a player sees changes on their next sync, not in real time. For a quiz about world flags, that's a fair compromise: the dataset changes on the order of weeks or months, not minutes.
-
-### XP is local, leaderboards are public
-
-User XP, coins, gems, streaks, achievements and cosmetic unlocks all live in **DataStore on-device only**. The **only** data that leaves the device is an anonymous, pseudonymous top-20 leaderboard entry per game mode, stored in Firestore (`ranking-classic`, `ranking-capital-by-flag`, `ranking-worldmix`, one per regional mode…).
-
-This keeps the app GDPR-simple (no personal data persisted server-side), keeps Firestore cost bounded (reads are capped at 20 per mode per ranking view) and avoids the entire "account recovery" surface. Players authenticate anonymously via Firebase Auth — no email, no password, no social login.
-
-**Tradeoff:** a player who reinstalls the app or changes device loses their progress. Accepted: the game is free, sessions are short, and the compensation is zero friction on first launch and zero privacy footprint.
-
-### Deterministic daily challenges
-
-The 3 daily challenges for a given user on a given date are derived from a **deterministic hash** of `installId + date`, not from a random roll. Two devices of the same user show the same challenges, challenges are stable across app restarts, and the UI can safely show "already completed" state without needing a server-side source of truth.
-
-**Tradeoff:** challenges are predictable to a player who datamines the catalog. Acceptable — the catalog is small enough that variation comes from the date rotation, not from obscurity.
-
-### Koin over Hilt
-
-Picked for faster iteration on a Kotlin-first, Compose-heavy codebase. No `kapt` / `ksp` in the DI path means shorter incremental builds, and the composable-friendly API (`koinInject()`, `koinViewModel()`) doesn't need annotation processing to reach into the UI layer. The only KSP compiler in use is Room's, which is unavoidable.
-
-**Tradeoff:** Koin resolves graphs at runtime, so a missing binding surfaces as a crash on first use rather than a red squiggle. Discipline around module boundaries (every `di.kt` is short, and every ViewModel constructor is injected through a single `koinViewModel()` call) keeps the exposure small.
-
-### Progressive mode unlocks
-
-Levels 5, 10 and 15 gate advanced modes (Currency Detective, Population Challenge, World Mix), and the regional chain requires 6 correct answers in the previous country's subdivisions to unlock the next. This is pure retention design — a new player isn't overwhelmed by 11 mode tiles on day one, and each unlock is a small dopamine hit that rewards continued play.
-
-**Tradeoff:** a seasoned player returning after an update may be frustrated to re-earn modes they knew. Acceptable because progression is persisted across sessions on the same install, and unlocks happen within the first few sessions.
+- **Room as source of truth, Firebase as the seed.** Country data syncs once from Firebase Realtime Database into Room; every subsequent query hits SQLite. Fully playable offline, predictable latency, and random-draw queries don't burn Firestore reads. *Tradeoff:* new content isn't real-time — acceptable for a dataset that changes on the order of weeks.
+- **XP is local, leaderboards are public.** XP, coins, gems, streaks, achievements and cosmetics live in DataStore on-device. The only data that leaves the device is an anonymous top-20 leaderboard entry per mode in Firestore. GDPR-simple, Firestore cost is bounded, no account-recovery surface. *Tradeoff:* reinstalling loses progress — accepted for a free, short-session game.
+- **Deterministic daily challenges.** The 3 daily challenges derive from a hash of `installId + date`, not a random roll. Stable across restarts, consistent across the same user's devices, no server source of truth needed. *Tradeoff:* predictable to a datamining player — fine given the catalogue size.
+- **MVVM over MVI.** ViewModels expose **granular `StateFlow`s per field** (`question`, `countryName`, `progress`…) plus a `SharedFlow<UiEvent>` for one-shots, instead of a single `UiState` reduced from `Intent`s. Screens here have a handful of orthogonal fields and no need for time-travel debugging or deterministic replay, so MVI's reducer + `copy()` ceremony would be pure overhead. Compose's `collectAsState` re-composes only the bound fields, so granular flows stay efficient. *Tradeoff:* no single snapshot of "the screen right now" — acceptable because state coherence is local to each ViewModel, not a cross-cutting invariant.
+- **Koin over Hilt.** No `kapt`/`ksp` in the DI path means shorter incremental builds, and the composable-friendly API reaches into the UI layer without annotation processing. *Tradeoff:* runtime graph resolution — missing bindings crash on first use instead of a compile error. Small, disciplined `di.kt` modules keep the exposure bounded.
+- **Progressive mode unlocks.** Levels 5/10/15 gate advanced modes; the regional chain requires 6 correct answers in the previous country. Pure retention design — no overwhelming tile wall on day one. *Tradeoff:* seasoned players returning after an update re-earn modes — acceptable because unlocks happen within the first sessions.
 
 ---
 
@@ -261,36 +210,6 @@ Run a single module:
    ```bash
    ./gradlew test
    ```
-
----
-
-## Roadmap
-
-Planned work, not yet shipped:
-
-- **Accessibility**: high-contrast theme and large-text mode
-- **Instrumented tests**: Compose UI tests for the critical screens
-- **Screenshot tests**: Roborazzi for visual regression across themes
-- **Billing**: remove-ads in-app product
-- **More languages**: French, Portuguese, Italian and German
-
----
-
-## Contributing
-
-This repo follows **[GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)**: `main` is always deployable, and every change arrives through a pull request.
-
-1. Fork the repo (or create a branch if you have write access).
-2. Create a descriptive branch from `main`: `feature/<topic>`, `fix/<bug>`, `docs/<area>`, `chore/<task>`.
-3. Write conventional-commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `ci:`.
-4. Open a pull request against `main`. CI will run the full 204-test suite automatically.
-5. Merge only after CI is green. Prefer a merge commit for feature branches (preserves history), squash for trivial fixes.
-
-Before opening the PR locally, please run:
-
-```bash
-./gradlew test
-```
 
 ---
 
