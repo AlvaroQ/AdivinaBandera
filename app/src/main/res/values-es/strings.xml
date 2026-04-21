@@ -2,15 +2,24 @@
     <string name="app_name">Adivina bandera</string>
     <string name="resultado_screen_title">Resultado final</string>
     <string name="ranking_screen_title">Ranking</string>
+    <string name="profile_title">Perfil</string>
     <string name="share_message">\nHice una puntuación de %d ¿eres capaz de superarlo?\n\n</string>
     <string name="share_message_general">\nMe ha gustado mucho esta aplicación.\n\n</string>
     <string name="choose_one">Elige una:</string>
-    <string name="other_apps">Otras aplicaciones</string>
     <string name="life">life</string>
     <string name="play_again">Jugar de nuevo</string>
     <string name="play">Jugar</string>
+    <string name="mode_classic_title">Bandera de países</string>
+    <string name="mode_regions_title">Regiones</string>
+    <string name="play_capital_by_flag">Capital por Bandera</string>
+    <string name="play_subdivision_by_flag">Banderas regionales</string>
+    <string name="play_regional_subdivisions">Banderas regionales</string>
+    <string name="play_currency_detective">Detective de Monedas</string>
+    <string name="play_population_challenge">Desafío de Población</string>
+    <string name="play_world_mix">World Mix</string>
     <string name="learn">Aprender</string>
     <string name="settings">Ajustes</string>
+    <string name="filter">Filtrar</string>
     <string name="share">Compartir</string>
     <string name="rate_on_play_store">Puntuar en play store</string>
     <string name="result">Resultado: %d</string>
@@ -23,11 +32,12 @@
     <string name="dialog_save">Guardar</string>
 
     <!-- content description image -->
-    <string name="game_title">Título del juego</string>
-    <string name="loading_image">imagen de cargando</string>
+    <string name="game_title">Juego de geografía</string>
+    <string name="privacy_policy">Política de privacidad</string>
     <string name="back">Volver</string>
     <string name="game_image">Imagen para adivinar</string>
     <string name="best_score">Mejores puntuaciones</string>
+    <string name="best_scores">Mejores puntuaciones</string>
     <string name="score_image_background">fondo de la clasificación</string>
     <string name="locale">es</string>
 
@@ -38,11 +48,8 @@
     <string name="settings_sounds">Sonidos</string>
     <string name="settings_rate_app">Valorar la aplicación</string>
     <string name="settings_rate_app_summary">Ir al play store para puntuar la app</string>
-    <string name="settings_more_apps">Más aplicaciones</string>
-    <string name="settings_more_apps_summary">Aplicaciones gratuitas recomendadas</string>
     <string name="sounds_on">Sonido activo</string>
     <string name="sounds_off">Sonido desactivado</string>
-    <string name="more_apps">Más aplicaciones</string>
     <string name="settings_share">Comparte con tus amigos</string>
     <string name="settings_share_summary">Comparte con tus amigos esta app</string>
     <string name="know_more">Saber más</string>
@@ -52,18 +59,187 @@
     <!-- Info screen -->
     <string name="info_title">Información</string>
     <string name="region">Region: %s</string>
-    <string name="capital">Capital: %s</string>
+    <string name="capital">Capital:</string>
     <string name="currency">Moneda:</string>
     <string name="language">Idiomas:</string>
-    <string name="currencies">%s (%s) \n</string>
-    <string name="languages">%s (%s) \n</string>
-    <string name="population">Población: %s habitantes</string>
-    <string name="area">Área: %s m²</string>
-    <string name="prefix">Prefijo: %s</string>
+    <string name="currencies">%1$s (%2$s) \n</string>
+    <string name="languages">%1$s (%2$s) \n</string>
+    <string name="population">Población</string>
+    <string name="area">Área</string>
+    <string name="prefix">Prefijo</string>
+
+    <!-- Result screen engagement -->
+    <string name="result_engagement_world_record">🌍 ¡Récord mundial! +%d puntos</string>
+    <string name="result_engagement_personal_best">⭐ ¡Nuevo récord personal! +%d puntos</string>
+    <string name="result_engagement_so_close">💪 ¡Casi! Te faltaron %d puntos</string>
+    <string name="result_engagement_keep_trying">🎯 ¡Sigue intentándolo!</string>
+
+    <!-- Mode unlock -->
+    <string name="mode_locked_subtitle">Alcanza el nivel %d para desbloquear</string>
+    <string name="mode_unlocked_celebration">¡Nuevo modo desbloqueado!</string>
 
     <!-- Dialog extra life -->
     <string name="dialog_extra_life_title">Vida extra</string>
     <string name="dialog_extra_life_description">¿Quiere una vida extra viendo un anuncio?</string>
     <string name="dialog_extra_life_btn_yes">Sí</string>
     <string name="dialog_extra_life_btn_no">No</string>
+
+    <!-- Select screen -->
+    <string name="hero_title">¿Cuánto sabes del mundo?</string>
+    <string name="hero_subtitle">Demuestra tus conocimientos de geografía</string>
+    <string name="game_modes_label">MODOS DE JUEGO</string>
+    <string name="mode_classic_subtitle">¿De qué país es esta bandera?</string>
+    <string name="mode_capital_flag_subtitle">¿Cuál es la capital de este país?</string>
+    <string name="mode_subdivision_subtitle">¿A qué región pertenece esta bandera?</string>
+    <string name="subdivision_label">Región</string>
+    <string name="mode_currency_subtitle">¿Reconoces las monedas del mundo?</string>
+    <string name="mode_population_subtitle">¿Qué país tiene más habitantes?</string>
+    <string name="mode_world_mix_subtitle">Preguntas de todo tipo mezcladas</string>
+    <string name="streak_label">Racha: %1$d días</string>
+    <string name="best_streak_label">Mejor racha: %1$d días</string>
+    <string name="streak_day_count_singular">%1$d día</string>
+    <string name="streak_day_count_plural">%1$d días</string>
+    <string name="streak_at_risk_title">Tu racha de %1$d días está en riesgo</string>
+    <string name="streak_at_risk_with_tokens">Tienes %1$d ❄ para protegerla</string>
+    <string name="streak_at_risk_without_tokens">Juega hoy para no perder la racha</string>
+    <string name="streak_widget_current_label">Racha actual</string>
+    <string name="streak_widget_played_today">Hoy has jugado</string>
+    <string name="streak_widget_at_risk">Racha en riesgo</string>
+    <string name="streak_widget_play_today">Juega hoy</string>
+    <string name="streak_widget_best_streak">Mejor racha: %1$s</string>
+    <string name="streak_widget_extra_tokens">+%1$d</string>
+    <string name="streak_dialog_continue">Continuar</string>
+    <string name="streak_dialog_milestone_days">%1$s seguidos</string>
+    <string name="streak_dialog_current_streak_title">Racha de %1$s</string>
+    <string name="streak_dialog_milestone_label">Hito alcanzado</string>
+    <string name="streak_dialog_continued_label">La racha sigue</string>
+    <string name="streak_dialog_xp_bonus">+%1$d XP</string>
+    <string name="streak_dialog_multiplier_label">x%1$s</string>
+    <string name="streak_dialog_freeze_reward_single">+%1$d token de congelación</string>
+    <string name="streak_dialog_freeze_reward_plural">+%1$d tokens de congelación</string>
+    <string name="streak_dialog_saved_label">Racha salvada</string>
+    <string name="streak_dialog_freeze_used">Has usado un token de congelación</string>
+    <string name="streak_dialog_freeze_remaining_single">Queda %1$d token ❄</string>
+    <string name="streak_dialog_freeze_remaining_plural">Quedan %1$d tokens ❄</string>
+    <string name="streak_dialog_broken_label">Racha perdida</string>
+    <string name="streak_dialog_previous_streak">Racha anterior: %1$s</string>
+    <string name="streak_dialog_new_streak_started">Nueva racha iniciada</string>
+    <string name="streak_dialog_rebuild_message">Juega todos los días para construir tu racha</string>
+    <string name="streak_dialog_first_streak_label">Primera racha</string>
+    <string name="streak_dialog_day_one">Día 1</string>
+    <string name="streak_dialog_new_streak_message">Juega cada día para ganar recompensas</string>
+    <string name="streak_dialog_weekly_reward_summary">7 días seguidos = 1 token ❄ + bonificación de XP</string>
+    <string name="streak_cycle_label">Ciclo:</string>
+    <string name="daily_challenge_label">Desafío diario</string>
+    <string name="completed_count">%1$d/%2$d completados</string>
+    <string name="practice_weak_spots">Practicar puntos débiles</string>
+    <string name="weak_spot_countries">%1$d países con más errores</string>
+    <string name="practice_title">Práctica</string>
+    <string name="back_press_again_to_exit">Volvé a tocar atrás para salir</string>
+
+    <!-- Game screen -->
+    <string name="population_challenge_question">¿Quién tiene más población?</string>
+
+    <!-- Daily challenges -->
+    <string name="loading_challenges">Cargando desafíos…</string>
+    <string name="daily_challenges_title">Desafíos Diarios</string>
+    <string name="all_completed">Todos completados</string>
+    <string name="weekly_label">Semanal</string>
+
+    <!-- Daily reward -->
+    <string name="daily_bonus">Bono diario</string>
+    <string name="claim_reward_description">¡Reclama tu recompensa de hoy!</string>
+    <string name="claim_button">RECLAMAR</string>
+    <string name="bonus_claimed">Bono reclamado</string>
+    <string name="come_back_tomorrow">Vuelve mañana</string>
+
+    <!-- Challenge completion banner -->
+    <string name="challenges_completed">Desafíos completados</string>
+    <string name="bonus_complete_all">Bonus por completar todos</string>
+
+    <!-- Mystery box dialog -->
+    <string name="mystery_box_title">\uD83C\uDF81 ¡Caja misteriosa!</string>
+    <string name="mystery_box_completed_games">¡Completaste 10 partidas!</string>
+    <string name="mystery_box_coins">+%1$d monedas</string>
+    <string name="mystery_box_freeze_token">+1 token congelador</string>
+    <string name="mystery_box_great">GENIAL</string>
+    <string name="mystery_box_opening">Abriendo…</string>
+
+    <!-- Mode unlock -->
+    <string name="tap_to_continue">Toca para continuar</string>
+
+    <!-- Region mastery -->
+    <string name="countries_discovered">Países descubiertos</string>
+    <string name="play_to_discover">Juega para descubrir el mundo</string>
+    <string name="explored_progress">%1$s%% explorado — ¡sigue así!</string>
+
+    <!-- Info screen — detalle (datos enriquecidos) -->
+    <string name="native_name">Nombre nativo</string>
+    <string name="demonym">Gentilicio</string>
+    <string name="subregion">Subregión</string>
+    <string name="borders">Países fronterizos</string>
+    <string name="timezones">Husos horarios</string>
+    <string name="coordinates">Coordenadas</string>
+    <string name="top_level_domain">Dominio de internet</string>
+    <string name="population_density">Densidad</string>
+    <string name="density_unit">hab/km²</string>
+    <string name="gini_coefficient">Coeficiente Gini</string>
+    <string name="gini_low">Desigualdad baja</string>
+    <string name="gini_medium">Desigualdad media</string>
+    <string name="gini_high">Desigualdad alta</string>
+    <string name="translations_title">Nombre en otros idiomas</string>
+    <string name="alpha_codes">Códigos</string>
+    <string name="geography_section">Geografía</string>
+    <string name="society_economy_section">Sociedad y economía</string>
+    <string name="featured_country">País del día</string>
+    <string name="flag_of">Bandera de %s</string>
+    <string name="go_to_country_detail">Ver detalle de %s</string>
+    <string name="neighboring_country_code">País fronterizo %s</string>
+    <string name="select_country_hint">Selecciona un país para ver sus detalles</string>
+    <string name="no_neighbors">Sin países fronterizos</string>
+    <string name="area_unit">km²</string>
+    <string name="population_label">Población</string>
+    <string name="area_label">Área</string>
+    <string name="capital_label">Capital</string>
+    <string name="currency_label">Moneda</string>
+    <string name="languages_label">Idiomas</string>
+    <string name="calling_code_label">Prefijo</string>
+
+    <!-- Filtros de región -->
+    <string name="region_all">Todos</string>
+    <string name="region_africa">África</string>
+    <string name="region_americas">América</string>
+    <string name="region_asia">Asia</string>
+    <string name="region_europe">Europa</string>
+    <string name="region_oceania">Oceanía</string>
+    <string name="region_polar">Polar</string>
+    <string name="region_filter_cd">Filtrar por %1$s, %2$s</string>
+    <string name="selected">seleccionado</string>
+    <string name="not_selected">no seleccionado</string>
+    <string name="search_country">Buscar país</string>
+    <string name="show_more">Mostrar más</string>
+    <string name="show_less">Mostrar menos</string>
+    <string name="remove_filter">Quitar filtro</string>
+    <string name="countries_per_row_label">Países por fila</string>
+    <string name="change_countries_grid_to">Cambiar a grilla %1$dx%2$d</string>
+
+    <!-- Select screen — fila de vista previa de modos -->
+    <string name="more_modes">Modos</string>
+    <string name="more_modes_subtitle">%1$d/%2$d formas de jugar</string>
+
+    <!-- Chain de banderas regionales -->
+    <string name="regional_subdivisions_progress">%1$d/%2$d regiones desbloqueadas</string>
+    <string name="regional_subdivisions_header">Banderas regionales</string>
+    <string name="regional_subdivisions_hint">Acierta 6 respuestas en cada región para desbloquear la siguiente.</string>
+    <string name="region_spain_title">España</string>
+    <string name="region_mexico_title">México</string>
+    <string name="region_argentina_title">Argentina</string>
+    <string name="region_brazil_title">Brasil</string>
+    <string name="region_germany_title">Alemania</string>
+    <string name="region_usa_title">Estados Unidos</string>
+    <string name="region_locked_subtitle">Acierta 6 respuestas en %1$s para desbloquearla</string>
+    <string name="region_active_subtitle">Sigue jugando para desbloquear la próxima región</string>
+    <string name="region_completed_subtitle">¡Dominada! Próxima región desbloqueada</string>
+    <string name="region_progress_prereq">%1$d/%2$d aciertos en la región anterior</string>
+    <string name="region_progress_self">%1$d/%2$d aciertos para desbloquear la siguiente región</string>
 </resources>

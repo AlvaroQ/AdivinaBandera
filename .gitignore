@@ -21,3 +21,13 @@ app/src/main/res/values/secrets.xml
 assets/country-f6ae1-export.json
 *.aab
 *.apk
+*.pen
+*.json
+
+# Secrets — dotenv
+.env
+.env.*
+!.env.example
+capture/scripts/.env.example
+capture/
+.atl/skill-registry.md

@@ -1,26 +1,47 @@
 # AdivinaBandera
 
 <p align="center">
-  <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/game.gif" width="250"> 
+  <img src="capture/game.gif" width="250" alt="AdivinaBandera gameplay"> 
 </p>
  
-This is an example Android Application that follow up Clean Architecture principles using MVVM pattern with Google architecture components and kotlin.
- - Follow SOLID principles
- - Koin dependency injector
- - MVVM presentation pattern
- - Google Architecture Components.
- - Google Firebase: Crashlitics, Analytics, Firestore and Real Time database
- - Google Admob
- - Make a Clean Architecture, similar to Robert C. Martin (Uncle Bob) solution (https://blog.cleancoder.com/uncle-bob/2016/01/04/ALittleArchitecture.html).
+AdivinaBandera is an Android game to learn and practice world flags, built as a real production project with modular Clean Architecture and MVVM.
 
-Link play store
+## Features
+
+- Flag quiz gameplay with score tracking.
+- Modular architecture focused on maintainability and testability.
+- Dependency injection with Koin.
+- Firebase integration: Analytics, Crashlytics, Firestore, Realtime Database, and Auth.
+- Monetization with Google AdMob and consent support (UMP).
+
+## Architecture
+
+The project follows Clean Architecture principles inspired by Robert C. Martin, with clear module boundaries:
+
+- `app`: Android UI and presentation layer (MVVM + Jetpack Compose).
+- `usecases`: Application use cases and orchestration.
+- `domain`: Business entities and contracts.
+- `data`: Repositories, persistence, and remote/local data sources.
+
+## Tech Stack
+
+- Kotlin + Coroutines
+- Jetpack Compose + Navigation
+- Koin (DI)
+- Room + DataStore + WorkManager
+- Firebase (Analytics, Crashlytics, Firestore, Realtime Database, Auth)
+- Google AdMob
+
+## Google Play
+
 https://play.google.com/store/apps/details?id=com.alvaroquintana.adivinabandera
 
+## Screenshots
+
 <p align="center">
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_start.jpeg" width="250"> 
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_game_ok.jpeg" width="250"> 
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_game_wrong.jpeg" width="250"> 
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_save_score.jpeg" width="250"> 
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_result.jpeg" width="250"> 
- <img src="https://github.com/AlvaroQ/AdivinaBandera/blob/main/capture/ES_best_score.jpeg" width="250"> 
+ <img src="capture/es/image1.jpg" width="250" alt="AdivinaBandera"> 
+ <img src="capture/es/image2.jpg" width="250" alt="AdivinaBandera"> 
+ <img src="capture/es/image3.jpg" width="250" alt="AdivinaBandera"> 
+ <img src="capture/es/image4.jpg" width="250" alt="AdivinaBandera"> 
+ <img src="capture/es/image5.jpg" width="250" alt="AdivinaBandera"> 
 </p>
