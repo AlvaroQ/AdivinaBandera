@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" role="img" aria-label="Unit test distribution: 204 tests across 4 Gradle modules, 100 percent passing on JVM">
+  <title>AdivinaBandera — Unit test coverage</title>
+  <desc>Horizontal bar chart showing 204 unit tests split across 4 modules: app (120), domain (48), usecases (22), data (14). All pass on the JVM via ./gradlew test.</desc>
+
+  <defs>
+    <style>
+      .diagram-title  { font: 700 22px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; fill: #0f172a; }
+      .diagram-sub    { font: 14px system-ui, sans-serif; fill: #475569; }
+      .mod-name       { font: 800 17px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #0f172a; }
+      .mod-count      { font: 800 18px ui-monospace, monospace; fill: #fff; letter-spacing: 0.5px; }
+      .mod-pct        { font: 600 12px system-ui, sans-serif; fill: #fff; fill-opacity: 0.85; }
+      .mod-desc       { font: 12px system-ui, sans-serif; fill: #64748b; }
+      .axis-tick      { font: 11px ui-monospace, monospace; fill: #94a3b8; }
+      .legend-label   { font: 600 11px system-ui, sans-serif; fill: #64748b; letter-spacing: 0.5px; }
+      .status         { font: 700 13px ui-monospace, monospace; fill: #15803D; }
+      .command        { font: 500 13px ui-monospace, monospace; fill: #334155; }
+      @media (prefers-color-scheme: dark) {
+        .diagram-title, .mod-name { fill: #f1f5f9; }
+        .diagram-sub, .mod-desc, .axis-tick, .legend-label, .command { fill: #94a3b8; }
+        .status { fill: #4ADE80; }
+      }
+    </style>
+    <linearGradient id="b-app" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="b-domain" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#22C55E"/>
+    </linearGradient>
+    <linearGradient id="b-usecases" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#B45309"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="b-data" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#2DD4BF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Header -->
+  <text x="430" y="38" text-anchor="middle" class="diagram-title">Unit tests · 204 across 4 modules</text>
+  <text x="430" y="60" text-anchor="middle" class="diagram-sub">All run on the JVM — no device, no emulator, no flakes</text>
+
+  <!-- Axis ticks -->
+  <line x1="195" y1="110" x2="795" y2="110" stroke="#E2E8F0" stroke-width="1"/>
+  <g>
+    <line x1="195" y1="105" x2="195" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="195" y="100" text-anchor="middle" class="axis-tick">0</text>
+    <line x1="345" y1="105" x2="345" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="345" y="100" text-anchor="middle" class="axis-tick">30</text>
+    <line x1="495" y1="105" x2="495" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="495" y="100" text-anchor="middle" class="axis-tick">60</text>
+    <line x1="645" y1="105" x2="645" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="645" y="100" text-anchor="middle" class="axis-tick">90</text>
+    <line x1="795" y1="105" x2="795" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="795" y="100" text-anchor="middle" class="axis-tick">120</text>
+  </g>
+
+  <!-- app: 120 tests -->
+  <text x="65" y="145" text-anchor="start" class="mod-name">app</text>
+  <text x="65" y="163" class="mod-desc">ViewModels · Managers</text>
+  <rect x="195" y="130" width="600" height="44" rx="6" fill="url(#b-app)"/>
+  <text x="215" y="158" class="mod-count">120</text>
+  <text x="260" y="158" class="mod-pct">· 58.8%</text>
+
+  <!-- domain: 48 tests -->
+  <text x="65" y="215" text-anchor="start" class="mod-name">domain</text>
+  <text x="65" y="233" class="mod-desc">Streak · Challenge rules</text>
+  <rect x="195" y="200" width="240" height="44" rx="6" fill="url(#b-domain)"/>
+  <text x="215" y="228" class="mod-count">48</text>
+  <text x="250" y="228" class="mod-pct">· 23.5%</text>
+
+  <!-- usecases: 22 tests -->
+  <text x="65" y="285" text-anchor="start" class="mod-name">usecases</text>
+  <text x="65" y="303" class="mod-desc">Business orchestration</text>
+  <rect x="195" y="270" width="110" height="44" rx="6" fill="url(#b-usecases)"/>
+  <text x="215" y="298" class="mod-count">22</text>
+  <text x="250" y="298" class="mod-pct">· 10.8%</text>
+
+  <!-- data: 14 tests -->
+  <text x="65" y="355" text-anchor="start" class="mod-name">data</text>
+  <text x="65" y="373" class="mod-desc">Repository contracts</text>
+  <rect x="195" y="340" width="70" height="44" rx="6" fill="url(#b-data)"/>
+  <text x="215" y="368" class="mod-count">14</text>
+  <text x="253" y="368" class="mod-pct">· 6.9%</text>
+
+  <!-- Footer: status + command -->
+  <line x1="50" y1="410" x2="810" y2="410" stroke="#E2E8F0" stroke-width="1"/>
+  <circle cx="70" cy="440" r="5" fill="#22C55E"/>
+  <text x="85" y="445" class="status">204 / 204 passing</text>
+  <text x="260" y="445" class="command">·  0 failures  ·  0 flaky  ·  0 skipped</text>
+  <text x="810" y="445" text-anchor="end" class="command">./gradlew test</text>
+</svg>

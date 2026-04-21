@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 620" role="img" aria-label="Clean Architecture — 4 Gradle modules with inward dependency rule">
+  <title>AdivinaBandera — Clean Architecture</title>
+  <desc>Bento-grid diagram showing 4 Gradle modules (app, usecases, data, domain) and the dependency direction: app depends on usecases and data, both depend on domain. Domain has zero Android dependencies.</desc>
+
+  <defs>
+    <style>
+      .mod-name    { font: 800 22px ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace; fill: #fff; letter-spacing: 0.5px; }
+      .mod-role    { font: 600 12px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; fill: #fff; fill-opacity: 0.85; letter-spacing: 2px; text-transform: uppercase; }
+      .mod-detail  { font: 13px system-ui, sans-serif; fill: #fff; fill-opacity: 0.92; }
+      .mod-badge   { font: 700 10px ui-monospace, monospace; fill: #fff; letter-spacing: 1px; }
+      .diagram-title  { font: 700 22px system-ui, sans-serif; fill: #0f172a; }
+      .diagram-sub    { font: 14px system-ui, sans-serif; fill: #475569; }
+      .rule-label  { font: 700 11px system-ui, sans-serif; fill: #64748b; letter-spacing: 1.5px; }
+      .rule-caption{ font: 12px system-ui, sans-serif; fill: #64748b; }
+      @media (prefers-color-scheme: dark) {
+        .diagram-title { fill: #f1f5f9; }
+        .diagram-sub, .rule-label, .rule-caption { fill: #94a3b8; }
+      }
+    </style>
+    <!-- Gradient fills: flag / world palette -->
+    <linearGradient id="g-app" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+    <linearGradient id="g-usecases" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#B45309"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="g-data" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#0D9488"/>
+    </linearGradient>
+    <linearGradient id="g-domain" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#15803D"/>
+    </linearGradient>
+    <marker id="dep-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <text x="430" y="38" text-anchor="middle" class="diagram-title">Clean Architecture · 4 Gradle modules</text>
+  <text x="430" y="60" text-anchor="middle" class="diagram-sub">The dependency rule is enforced by the build graph, not by convention</text>
+
+  <!-- app module: spans full width at top -->
+  <rect x="50" y="95" width="760" height="110" rx="14" fill="url(#g-app)" stroke="rgba(15,23,42,0.15)" stroke-width="1"/>
+  <rect x="70" y="115" width="70" height="20" rx="4" fill="rgba(255,255,255,0.15)"/>
+  <text x="105" y="130" text-anchor="middle" class="mod-badge">ANDROID</text>
+  <text x="150" y="132" class="mod-role">Presentation</text>
+  <text x="70" y="168" class="mod-name">app</text>
+  <text x="70" y="190" class="mod-detail">Compose screens · ViewModels (StateFlow + SharedFlow) · Koin wiring · Managers · DataSource impls</text>
+
+  <!-- Two vertical connectors from app down to usecases and data -->
+  <line x1="250" y1="210" x2="250" y2="245" stroke="#64748b" stroke-width="2.5" marker-end="url(#dep-arrow)"/>
+  <line x1="610" y1="210" x2="610" y2="245" stroke="#64748b" stroke-width="2.5" marker-end="url(#dep-arrow)"/>
+  <text x="265" y="232" class="rule-caption">depends on</text>
+  <text x="625" y="232" class="rule-caption">depends on</text>
+
+  <!-- usecases module: left middle -->
+  <rect x="50" y="255" width="370" height="150" rx="14" fill="url(#g-usecases)" stroke="rgba(15,23,42,0.15)" stroke-width="1"/>
+  <rect x="70" y="275" width="60" height="20" rx="4" fill="rgba(255,255,255,0.15)"/>
+  <text x="100" y="290" text-anchor="middle" class="mod-badge">JVM</text>
+  <text x="140" y="292" class="mod-role">Application business rules</text>
+  <text x="70" y="328" class="mod-name">usecases</text>
+  <text x="70" y="355" class="mod-detail">GetCountryUseCase · GetRandomSubdivisions</text>
+  <text x="70" y="375" class="mod-detail">SaveTopScore · ProcessGameResultUseCase</text>
+  <text x="70" y="395" class="mod-detail">XpLeaderboardUseCases · GetRankingScore</text>
+
+  <!-- data module: right middle -->
+  <rect x="440" y="255" width="370" height="150" rx="14" fill="url(#g-data)" stroke="rgba(15,23,42,0.15)" stroke-width="1"/>
+  <rect x="460" y="275" width="60" height="20" rx="4" fill="rgba(255,255,255,0.15)"/>
+  <text x="490" y="290" text-anchor="middle" class="mod-badge">JVM</text>
+  <text x="530" y="292" class="mod-role">Interfaces and contracts</text>
+  <text x="460" y="328" class="mod-name">data</text>
+  <text x="460" y="355" class="mod-detail">Repository interfaces: CountryRepository,</text>
+  <text x="460" y="375" class="mod-detail">RankingRepository, XpLeaderboardRepository</text>
+  <text x="460" y="395" class="mod-detail">DataSource contracts (no implementations)</text>
+
+  <!-- Converging arrows into domain -->
+  <path d="M 210 410 Q 210 445 375 455" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#dep-arrow)"/>
+  <path d="M 650 410 Q 650 445 485 455" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#dep-arrow)"/>
+
+  <!-- domain module: foundation at the bottom -->
+  <rect x="130" y="460" width="600" height="130" rx="14" fill="url(#g-domain)" stroke="rgba(15,23,42,0.15)" stroke-width="1"/>
+  <rect x="150" y="480" width="100" height="20" rx="4" fill="rgba(255,255,255,0.15)"/>
+  <text x="200" y="495" text-anchor="middle" class="mod-badge">PURE KOTLIN</text>
+  <text x="260" y="497" class="mod-role">Core — zero Android</text>
+  <text x="150" y="533" class="mod-name">domain</text>
+  <text x="150" y="558" class="mod-detail">Entities: Country · Subdivision · User · Streak · DailyChallenge</text>
+  <text x="150" y="578" class="mod-detail">Cosmetics · Seasonal · ChallengeReward · XpLeaderboardEntry</text>
+
+  <!-- Dependency rule label (vertical on the left) -->
+  <line x1="24" y1="100" x2="24" y2="590" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="24,95 20,103 28,103" fill="#94a3b8"/>
+  <polygon points="24,595 20,587 28,587" fill="#94a3b8"/>
+  <text transform="rotate(-90 24 345)" x="24" y="345" text-anchor="middle" class="rule-label">DEPENDENCIES POINT DOWN</text>
+</svg>
