@@ -5,7 +5,7 @@
 ![API Level](https://img.shields.io/badge/API-23%2B-brightgreen)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-7F52FF)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.03.01-4285F4)
-![Unit tests](https://img.shields.io/badge/unit%20tests-230%20passing-22C55E)
+![Unit tests](https://img.shields.io/badge/unit%20tests-250%20passing-22C55E)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
@@ -20,7 +20,7 @@
 
 AdivinaBandera is an Android quiz game about **world flags, capitals, currencies, populations and regional symbols**. It started as a small hobby app and has grown into a 200+ country catalogue with 11 game modes, a progression system, a cosmetics economy and daily challenges — built with modern Kotlin, Jetpack Compose and Clean Architecture.
 
-It is also a long-lived production codebase that doubles as a real-world reference for modular Android architecture, Koin dependency injection, Firebase-backed leaderboards and a fully offline-first data layer powered by Room.
+It is also a long-lived production codebase that doubles as a real-world reference for modular Android architecture, Metro compile-time dependency injection, MVI ViewModels, Firebase-backed leaderboards and a fully offline-first data layer powered by Room.
 
 ---
 
@@ -94,7 +94,7 @@ Four Gradle modules, one responsibility each:
 
 - **`app`** — Android layer: Compose screens, ViewModels, Metro `AppGraph` (with `@Provides` for Firebase/Room/DataStore), DataSource implementations, notification scheduling.
 - **`usecases`** — Pure-JVM orchestration (`GetCountryUseCase`, `ProcessGameResultUseCase`, `XpLeaderboardUseCases`...).
-- **`data`** — Repository and DataSource **interfaces**. No implementations — those live in `app` so the Android SDK stays out of `data`.
+- **`data`** — Repository contracts and the pure-JVM `*RepositoryImpl` classes that delegate to `DataSource` interfaces. The Android-bound `DataSource` implementations live in `app` so the Android SDK stays out of `data`.
 - **`domain`** — Pure Kotlin entities: `Country`, `Subdivision`, `Streak`, `DailyChallenge`, `PlayerCosmetics`, `XpLeaderboardEntry`. Zero Android imports.
 
 The dependency rule is enforced by the Gradle graph itself: if `domain` tried to import anything Android, Gradle wouldn't compile it. Every screen ViewModel extends a shared `MviViewModel<S, I, E>` base and exposes three primitives: `state: StateFlow<UiState>`, `events: SharedFlow<UiEvent>` (navigation, toasts, dialog requests) and `dispatch(intent: I)` as the single UI entry point. Metro generates the dependency graph at compile time — `@DependencyGraph(AppScope::class) interface AppGraph` is the root, populated by `@ContributesBinding` and `@Inject` annotations across all four modules. Missing or cyclic bindings fail the build, not the runtime.
@@ -127,18 +127,18 @@ Short rationale behind the less-obvious architectural choices — what was gaine
 ## Testing
 
 <p align="center">
-  <img src="docs/test-coverage.svg" alt="Unit test distribution across 4 modules: 230 tests, all passing" width="720">
+  <img src="docs/test-coverage.svg" alt="Unit test distribution across 4 modules: 250 tests, all passing" width="720">
 </p>
 
 All tests run on the JVM — no device, no emulator. Every push and pull request to `main` runs the full suite through [GitHub Actions](.github/workflows/ci.yml).
 
 | Module     | Tests | What's covered                                                                          |
 | ---------- | ----- | --------------------------------------------------------------------------------------- |
-| `app`      | 124   | ViewModels (`GameViewModel`, `ResultViewModel`, `RankingViewModel`, `InfoViewModel`), `ProgressionManager`, `ChallengeAppConfig`, `BanderaCatalog`, `DataBaseSourceImpl` subdivisions |
+| `app`      | 144   | All 8 MviViewModels (`Game`, `Result`, `Ranking`, `Info`, `Select`, `Profile`, `Shop`, `XpLeaderboard`), `MviViewModel` base class, `ProgressionManager`, `ChallengeAppConfig`, `BanderaCatalog`, `DataBaseSourceImpl` subdivisions |
 | `domain`   | 48    | `StreakRules` (37 tests — streak progression and freeze-token logic), `ChallengeReward` payout math |
 | `usecases` | 44    | `GetCountryUseCase`, `GetRandomSubdivisions`, `GetRankingScore`, `GetRecordScore`, `SaveTopScore`, `ProcessGameResultUseCase`, `RecordAnswerUseCase` |
 | `data`     | 14    | `CountryRepository`, `RankingRepository` contracts                                      |
-| **Total**  | **230** | **0 failures · 0 flaky · 0 skipped**                                                  |
+| **Total**  | **250** | **0 failures · 0 flaky · 0 skipped**                                                  |
 
 Stack:
 

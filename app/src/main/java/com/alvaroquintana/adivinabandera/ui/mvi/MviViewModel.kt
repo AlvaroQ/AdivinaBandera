@@ -36,6 +36,15 @@ import kotlinx.coroutines.launch
  * boilerplate. Subclasses use [updateState] for reductions and [emit] for
  * one-shots, both inside [handleIntent].
  *
+ * **The init contract: side-effect-free.** Subclasses MUST NOT [emit] events
+ * or [dispatch] intents that produce events from their `init { }` block.
+ * [events] is a `SharedFlow` with `replay = 0`; events emitted before any
+ * subscriber is attached are silently dropped. The screen drives the first
+ * action via a `LaunchedEffect { viewModel.dispatch(Intent.Load) }` so the
+ * collector is already attached when the event fires. Init may set internal
+ * fields (counters, timestamps) and call pure analytics APIs, but anything
+ * that ends in [emit] belongs in an Intent the screen dispatches.
+ *
  * @param S the immutable `UiState` data class for the screen.
  * @param I the sealed `Intent` (or `Action`) hierarchy the screen accepts.
  * @param E the sealed one-shot event hierarchy (typically `Navigation`,
