@@ -12,6 +12,8 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
+@dev.zacsweers.metro.ContributesBinding(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.Inject
 class XpLeaderboardDataSourceImpl : XpLeaderboardDataSource {
 
     private val collection = Firebase.firestore.collection("xp-leaderboard-banderas")

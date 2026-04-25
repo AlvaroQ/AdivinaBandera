@@ -45,6 +45,9 @@ data class SelectUiState(
     val totalRegionalCount: Int get() = regionalModeDescriptors.size
 }
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(SelectViewModel::class)
+@dev.zacsweers.metro.Inject
 class SelectViewModel(
     private val streakManager: StreakManager,
     private val dailyChallengeManager: DailyChallengeManager,

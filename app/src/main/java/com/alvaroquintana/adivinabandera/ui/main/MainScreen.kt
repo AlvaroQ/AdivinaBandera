@@ -63,7 +63,7 @@ import com.alvaroquintana.adivinabandera.ui.theme.isExpanded
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.toRouteString
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -232,7 +232,7 @@ fun MainScreen(rootNavController: NavHostController) {
             ) { page ->
                 when (MainDestinations.entries[page]) {
                     MainDestinations.Select -> {
-                        val viewModel: SelectViewModel = koinViewModel()
+                        val viewModel: SelectViewModel = metroViewModel()
                         SelectScreen(
                             viewModel = viewModel,
                             onNavigateToGame = {
@@ -285,7 +285,7 @@ fun MainScreen(rootNavController: NavHostController) {
                     }
 
                     MainDestinations.Info -> {
-                        val viewModel: InfoViewModel = koinViewModel()
+                        val viewModel: InfoViewModel = metroViewModel()
                         InfoScreen(
                             viewModel = viewModel,
                             onTopBarTitleChange = { selectedName ->
@@ -295,12 +295,12 @@ fun MainScreen(rootNavController: NavHostController) {
                     }
 
                     MainDestinations.Ranking -> {
-                        val viewModel: RankingViewModel = koinViewModel()
+                        val viewModel: RankingViewModel = metroViewModel()
                         RankingScreen(viewModel = viewModel)
                     }
 
                     MainDestinations.Profile -> {
-                        val viewModel: ProfileViewModel = koinViewModel()
+                        val viewModel: ProfileViewModel = metroViewModel()
                         ProfileScreen(
                             viewModel = viewModel,
                             onBack = { /* no-op dentro del pager */ },

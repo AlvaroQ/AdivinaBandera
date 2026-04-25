@@ -5,6 +5,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import com.alvaroquintana.domain.cosmetics.CurrencyBalance
 import com.alvaroquintana.usecases.engagement.CurrencyService
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -19,6 +23,9 @@ import kotlinx.coroutines.sync.withLock
  *
  * El Mutex garantiza atomicidad en operaciones de earn/spend concurrentes.
  */
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class CurrencyManager(private val context: Context) : CurrencyService {
 
     private val dataStore get() = context.cosmeticsDataStore

@@ -9,6 +9,9 @@ import com.alvaroquintana.domain.cosmetics.CosmeticPurchaseResult
 import com.alvaroquintana.domain.cosmetics.PlayerCosmetics
 import com.alvaroquintana.domain.cosmetics.Unlockable
 import com.alvaroquintana.domain.cosmetics.UnlockCondition
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,6 +25,8 @@ import kotlinx.coroutines.sync.withLock
  * Las operaciones con estado compartido estan protegidas con Mutex para
  * evitar condiciones de carrera en operaciones concurrentes.
  */
+@SingleIn(AppScope::class)
+@Inject
 class UnlockablesManager(
     private val context: Context,
     private val currencyManager: CurrencyManager,

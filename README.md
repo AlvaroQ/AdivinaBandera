@@ -5,7 +5,7 @@
 ![API Level](https://img.shields.io/badge/API-23%2B-brightgreen)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-7F52FF)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.03.01-4285F4)
-![Unit tests](https://img.shields.io/badge/unit%20tests-204%20passing-22C55E)
+![Unit tests](https://img.shields.io/badge/unit%20tests-230%20passing-22C55E)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
@@ -72,7 +72,7 @@ Each mode keeps its own Firestore leaderboard (top 20) and contributes independe
 | Architecture           | Clean Architecture — 4 Gradle modules                           | MVVM              |
 | State Management       | StateFlow + SharedFlow                                          | Coroutines 1.10.2 |
 | Navigation             | Navigation Compose (type-safe, kotlinx.serialization)           | 2.9.7             |
-| Dependency Injection   | Koin (Android + Compose)                                        | 4.2.1             |
+| Dependency Injection   | Metro (compile-time, Kotlin compiler plugin)                    | 0.10.3            |
 | Local Persistence      | Room (KSP) + DataStore Preferences                              | 2.8.4 / 1.2.1     |
 | Background work        | WorkManager (daily reminders)                                   | 2.11.2            |
 | Backend                | Firebase (Firestore, Realtime DB, Auth, Analytics, Crashlytics) | BOM 34.12.0       |
@@ -92,12 +92,12 @@ Each mode keeps its own Firestore leaderboard (top 20) and contributes independe
 
 Four Gradle modules, one responsibility each:
 
-- **`app`** — Android layer: Compose screens, ViewModels, Koin modules, DataSource implementations, notification scheduling.
+- **`app`** — Android layer: Compose screens, ViewModels, Metro `AppGraph` (with `@Provides` for Firebase/Room/DataStore), DataSource implementations, notification scheduling.
 - **`usecases`** — Pure-JVM orchestration (`GetCountryUseCase`, `ProcessGameResultUseCase`, `XpLeaderboardUseCases`...).
 - **`data`** — Repository and DataSource **interfaces**. No implementations — those live in `app` so the Android SDK stays out of `data`.
 - **`domain`** — Pure Kotlin entities: `Country`, `Subdivision`, `Streak`, `DailyChallenge`, `PlayerCosmetics`, `XpLeaderboardEntry`. Zero Android imports.
 
-The dependency rule is enforced by the Gradle graph itself: if `domain` tried to import anything Android, Gradle wouldn't compile it. ViewModels expose `StateFlow<UiState>` for reactive state and `SharedFlow<UiEvent>` for one-shot events (navigation, dialogs). Koin wires everything at application start.
+The dependency rule is enforced by the Gradle graph itself: if `domain` tried to import anything Android, Gradle wouldn't compile it. ViewModels expose `StateFlow<UiState>` for reactive state and `SharedFlow<UiEvent>` for one-shot events (navigation, dialogs). Metro generates the dependency graph at compile time — `@DependencyGraph(AppScope::class) interface AppGraph` is the root, populated by `@ContributesBinding` and `@Inject` annotations across all four modules. Missing or cyclic bindings fail the build, not the runtime.
 
 ---
 
@@ -119,7 +119,7 @@ Short rationale behind the less-obvious architectural choices — what was gaine
 - **XP is local, leaderboards are public.** XP, coins, gems, streaks, achievements and cosmetics live in DataStore on-device. The only data that leaves the device is an anonymous top-20 leaderboard entry per mode in Firestore. GDPR-simple, Firestore cost is bounded, no account-recovery surface. *Tradeoff:* reinstalling loses progress — accepted for a free, short-session game.
 - **Deterministic daily challenges.** The 3 daily challenges derive from a hash of `installId + date`, not a random roll. Stable across restarts, consistent across the same user's devices, no server source of truth needed. *Tradeoff:* predictable to a datamining player — fine given the catalogue size.
 - **MVVM over MVI.** ViewModels expose **granular `StateFlow`s per field** (`question`, `countryName`, `progress`…) plus a `SharedFlow<UiEvent>` for one-shots, instead of a single `UiState` reduced from `Intent`s. Screens here have a handful of orthogonal fields and no need for time-travel debugging or deterministic replay, so MVI's reducer + `copy()` ceremony would be pure overhead. Compose's `collectAsState` re-composes only the bound fields, so granular flows stay efficient. *Tradeoff:* no single snapshot of "the screen right now" — acceptable because state coherence is local to each ViewModel, not a cross-cutting invariant.
-- **Koin over Hilt.** No `kapt`/`ksp` in the DI path means shorter incremental builds, and the composable-friendly API reaches into the UI layer without annotation processing. *Tradeoff:* runtime graph resolution — missing bindings crash on first use instead of a compile error. Small, disciplined `di.kt` modules keep the exposure bounded.
+- **Metro for compile-time DI.** Metro is a Kotlin compiler plugin (FIR + IR) that builds the dependency graph at compile time — closer to Dagger's runtime model but without `kapt` or `ksp` in the DI path. The whole graph is one `@DependencyGraph(AppScope::class) interface AppGraph` populated by `@ContributesBinding` aggregation. Missing or cyclic bindings **fail the build, not the runtime** — this was the main thing the previous Koin setup gave up. Aggregation across the four modules is automatic, so adding a new use case or repository implementation only requires `@Inject` on the constructor; no central registry edit. *Tradeoff:* a compiler plugin tied to a specific Kotlin version (Metro 0.10.x ↔ Kotlin 2.3.x) — every Kotlin bump now needs a matching Metro bump. Metro's `metrox-android` helper artifact is **deliberately not used** because it declares minSdk 28; the `AppGraph` is bootstrapped manually via `createGraphFactory<AppGraph.Factory>().create(this)` in `AdivinaApp.onCreate()`.
 - **Progressive mode unlocks.** Levels 5/10/15 gate advanced modes; the regional chain requires 6 correct answers in the previous country. Pure retention design — no overwhelming tile wall on day one. *Tradeoff:* seasoned players returning after an update re-earn modes — acceptable because unlocks happen within the first sessions.
 
 ---
@@ -127,18 +127,18 @@ Short rationale behind the less-obvious architectural choices — what was gaine
 ## Testing
 
 <p align="center">
-  <img src="docs/test-coverage.svg" alt="Unit test distribution across 4 modules: 204 tests, all passing" width="720">
+  <img src="docs/test-coverage.svg" alt="Unit test distribution across 4 modules: 230 tests, all passing" width="720">
 </p>
 
 All tests run on the JVM — no device, no emulator. Every push and pull request to `main` runs the full suite through [GitHub Actions](.github/workflows/ci.yml).
 
 | Module     | Tests | What's covered                                                                          |
 | ---------- | ----- | --------------------------------------------------------------------------------------- |
-| `app`      | 120   | ViewModels (`GameViewModel`, `ResultViewModel`, `RankingViewModel`, `InfoViewModel`), `ProgressionManager`, `ChallengeAppConfig`, `BanderaCatalog`, `DataBaseSourceImpl` subdivisions |
+| `app`      | 124   | ViewModels (`GameViewModel`, `ResultViewModel`, `RankingViewModel`, `InfoViewModel`), `ProgressionManager`, `ChallengeAppConfig`, `BanderaCatalog`, `DataBaseSourceImpl` subdivisions |
 | `domain`   | 48    | `StreakRules` (37 tests — streak progression and freeze-token logic), `ChallengeReward` payout math |
-| `usecases` | 22    | `GetCountryUseCase`, `GetRandomSubdivisions`, `GetRankingScore`, `GetRecordScore`, `SaveTopScore` |
+| `usecases` | 44    | `GetCountryUseCase`, `GetRandomSubdivisions`, `GetRankingScore`, `GetRecordScore`, `SaveTopScore`, `ProcessGameResultUseCase`, `RecordAnswerUseCase` |
 | `data`     | 14    | `CountryRepository`, `RankingRepository` contracts                                      |
-| **Total**  | **204** | **0 failures · 0 flaky · 0 skipped**                                                  |
+| **Total**  | **230** | **0 failures · 0 flaky · 0 skipped**                                                  |
 
 Stack:
 

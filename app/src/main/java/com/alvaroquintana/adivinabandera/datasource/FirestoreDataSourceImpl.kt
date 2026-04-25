@@ -13,6 +13,8 @@ import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
+@dev.zacsweers.metro.ContributesBinding(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.Inject
 class FirestoreDataSourceImpl : FirestoreDataSource {
 
     private val database = Firebase.firestore

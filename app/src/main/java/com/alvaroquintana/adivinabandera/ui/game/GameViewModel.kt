@@ -12,6 +12,13 @@ import com.alvaroquintana.usecases.RecordAnswerUseCase
 import com.alvaroquintana.usecases.question.GeneratedQuestion
 import com.alvaroquintana.usecases.question.GenerationContext
 import com.alvaroquintana.usecases.question.QuestionGeneratorFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,12 +28,26 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+@AssistedInject
 class GameViewModel(
+    @Assisted val gameMode: GameMode,
+    @Assisted val forcedCountryPool: List<Int>,
     private val questionGeneratorFactory: QuestionGeneratorFactory,
-    private val recordAnswer: RecordAnswerUseCase,
-    val gameMode: GameMode = GameMode.Classic,
-    val forcedCountryPool: List<Int> = emptyList()
+    private val recordAnswer: RecordAnswerUseCase
 ) : ViewModel() {
+
+    /**
+     * Manual assisted factory used by [assistedMetroViewModel] callers in
+     * Compose. Lets the navigation layer pass [gameMode] and a forced
+     * country pool — both runtime parameters that cannot be resolved
+     * from the dependency graph alone.
+     */
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey(Factory::class)
+    @ContributesIntoMap(AppScope::class)
+    fun interface Factory : ManualViewModelAssistedFactory {
+        fun create(gameMode: GameMode, forcedCountryPool: List<Int>): GameViewModel
+    }
 
     private val excludedCountryIds = mutableSetOf<Int>()
     private val seenSubdivisionIds = mutableSetOf<String>()

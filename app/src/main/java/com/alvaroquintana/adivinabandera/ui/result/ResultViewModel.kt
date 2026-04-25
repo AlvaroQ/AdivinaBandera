@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(ResultViewModel::class)
+@dev.zacsweers.metro.Inject
 class ResultViewModel(
     private val saveTopScore: SaveTopScore,
     private val getRecordScore: GetRecordScore,

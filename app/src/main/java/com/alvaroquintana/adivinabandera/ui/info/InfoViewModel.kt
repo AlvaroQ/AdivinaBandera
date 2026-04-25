@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(InfoViewModel::class)
+@dev.zacsweers.metro.Inject
 class InfoViewModel(private val getCountryList: GetCountryList) : ViewModel() {
     private val list = mutableListOf<Country>()
     private val loadedPages = mutableSetOf<Int>()

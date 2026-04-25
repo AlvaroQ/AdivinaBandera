@@ -10,6 +10,10 @@ import com.alvaroquintana.domain.regionalAlpha2
 import com.alvaroquintana.domain.regionalChain
 import com.alvaroquintana.domain.regionalPrerequisite
 import com.alvaroquintana.usecases.engagement.RegionalProgressionService
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -19,6 +23,9 @@ import kotlinx.coroutines.sync.withLock
  * Trackea aciertos por pais para el chain de modos regionales.
  * El siguiente eslabon se desbloquea cuando el anterior alcanza [REGIONAL_UNLOCK_THRESHOLD] aciertos.
  */
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class RegionalProgressionManager(private val dataStore: DataStore<Preferences>) : RegionalProgressionService {
 
     private val mutex = Mutex()

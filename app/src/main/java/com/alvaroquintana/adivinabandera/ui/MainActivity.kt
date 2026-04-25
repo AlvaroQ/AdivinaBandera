@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.animation.ExitTransition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -39,6 +40,7 @@ import androidx.navigation.toRoute
 import androidx.lifecycle.lifecycleScope
 import com.alvaroquintana.adivinabandera.BuildConfig
 import com.alvaroquintana.adivinabandera.R
+import com.alvaroquintana.adivinabandera.application.AdivinaApp
 import com.alvaroquintana.adivinabandera.managers.Analytics
 import com.alvaroquintana.adivinabandera.managers.XpSyncManager
 import com.alvaroquintana.adivinabandera.ui.animation.NavTransitions
@@ -82,11 +84,11 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
+import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -95,7 +97,8 @@ class MainActivity : ComponentActivity() {
     private val tag = "MainActivity"
     private lateinit var auth: FirebaseAuth
     private val isMobileAdsInitialized = AtomicBoolean(false)
-    private val xpSyncManager: XpSyncManager by inject()
+    private val xpSyncManager: XpSyncManager
+        get() = (application as AdivinaApp).appGraph.xpSyncManager
     private val crashlytics: FirebaseCrashlytics
         get() = FirebaseCrashlytics.getInstance()
 
@@ -120,6 +123,8 @@ class MainActivity : ComponentActivity() {
         // Schedule daily reminder notification (no-op if already scheduled)
         NotificationScheduler.scheduleDailyReminder(this)
 
+        val viewModelFactory = (application as AdivinaApp).appGraph.viewModelFactory
+
         setContent {
             val prefs = remember {
                 getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE)
@@ -140,15 +145,17 @@ class MainActivity : ComponentActivity() {
 
             val windowSizeClass = rememberWindowSizeClass()
 
-            AdivinaBanderaTheme(themeMode = themeMode, windowSizeClass = windowSizeClass) {
-                val navController = rememberNavController()
-                AppNavHost(
-                    navController = navController,
-                    onThemeModeChanged = { mode ->
-                        themeMode = mode
-                        prefs.edit { putString("theme_mode", mode.name) }
-                    }
-                )
+            CompositionLocalProvider(LocalMetroViewModelFactory provides viewModelFactory) {
+                AdivinaBanderaTheme(themeMode = themeMode, windowSizeClass = windowSizeClass) {
+                    val navController = rememberNavController()
+                    AppNavHost(
+                        navController = navController,
+                        onThemeModeChanged = { mode ->
+                            themeMode = mode
+                            prefs.edit { putString("theme_mode", mode.name) }
+                        }
+                    )
+                }
             }
         }
     }
@@ -299,7 +306,9 @@ private fun AppNavHost(
 
 @Composable
 private fun PracticeRoute(navController: NavHostController, countryIds: List<Int>) {
-    val viewModel: GameViewModel = koinViewModel(parameters = { parametersOf(GameMode.Classic, countryIds) })
+    val viewModel: GameViewModel = assistedMetroViewModel<GameViewModel, GameViewModel.Factory> {
+        create(GameMode.Classic, countryIds)
+    }
     val context = LocalContext.current
 
     var life by rememberSaveable { mutableIntStateOf(3) }
@@ -388,7 +397,9 @@ private fun PracticeRoute(navController: NavHostController, countryIds: List<Int
 @Composable
 private fun GameRoute(navController: NavHostController, mode: String = "Classic") {
     val gameMode = mode.toGameMode()
-    val viewModel: GameViewModel = koinViewModel(parameters = { parametersOf(gameMode) })
+    val viewModel: GameViewModel = assistedMetroViewModel<GameViewModel, GameViewModel.Factory> {
+        create(gameMode, emptyList())
+    }
     val context = LocalContext.current
 
     var life by rememberSaveable { mutableIntStateOf(3) }
@@ -523,7 +534,7 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
 
 @Composable
 private fun ResultRoute(navController: NavHostController, result: Result) {
-    val viewModel: ResultViewModel = koinViewModel()
+    val viewModel: ResultViewModel = metroViewModel()
     val context = LocalContext.current
     val gamePoints = result.points
 
@@ -666,7 +677,7 @@ private fun SettingsRoute(
 
 @Composable
 private fun XpLeaderboardRoute(navController: NavHostController) {
-    val viewModel: XpLeaderboardViewModel = koinViewModel()
+    val viewModel: XpLeaderboardViewModel = metroViewModel()
 
     LaunchedEffect(Unit) {
         FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "XpLeaderboard")
@@ -692,7 +703,7 @@ private fun XpLeaderboardRoute(navController: NavHostController) {
 
 @Composable
 private fun ShopRoute(navController: NavHostController) {
-    val viewModel: ShopViewModel = koinViewModel()
+    val viewModel: ShopViewModel = metroViewModel()
 
     LaunchedEffect(Unit) {
         FirebaseCrashlytics.getInstance().setCustomKey("current_screen", "Shop")
