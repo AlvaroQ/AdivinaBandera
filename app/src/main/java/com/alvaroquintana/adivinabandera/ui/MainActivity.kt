@@ -545,34 +545,36 @@ private fun ResultRoute(navController: NavHostController, result: Result) {
 
     LaunchedEffect(Unit) {
         viewModel.initWithGameMode(result.gameMode)
-        viewModel.getPersonalRecord(gamePoints)
-        viewModel.setPersonalRecordOnServer(gamePoints)
-        viewModel.processEngagement(
-            correctAnswers = result.correctAnswers,
-            totalQuestions = result.totalQuestions,
-            bestStreak = result.bestStreak,
-            timePlayedMs = result.timePlayedMs,
-            completedAllQuestions = result.completedAllQuestions,
-            gameMode = result.gameMode
+        viewModel.dispatch(ResultViewModel.Intent.LoadPersonalRecord(gamePoints))
+        viewModel.dispatch(ResultViewModel.Intent.CheckIfShouldSave(gamePoints))
+        viewModel.dispatch(
+            ResultViewModel.Intent.ProcessGameOutcome(
+                correctAnswers = result.correctAnswers,
+                totalQuestions = result.totalQuestions,
+                bestStreak = result.bestStreak,
+                timePlayedMs = result.timePlayedMs,
+                completedAllQuestions = result.completedAllQuestions,
+                gameMode = result.gameMode
+            )
         )
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navigation.collect { navigation ->
-            when (navigation) {
-                ResultViewModel.Navigation.Game -> {
+        viewModel.events.collect { event ->
+            when (event) {
+                ResultViewModel.Event.Game -> {
                     navController.navigate(Main) {
                         popUpTo<Main> { inclusive = true }
                     }
                 }
-                ResultViewModel.Navigation.Rate -> rateApp(context)
-                is ResultViewModel.Navigation.Share -> shareApp(context, navigation.points)
-                ResultViewModel.Navigation.Ranking -> {
+                ResultViewModel.Event.Rate -> rateApp(context)
+                is ResultViewModel.Event.Share -> shareApp(context, event.points)
+                ResultViewModel.Event.Ranking -> {
                     navController.navigate(Main) {
                         popUpTo<Main> { inclusive = false }
                     }
                 }
-                is ResultViewModel.Navigation.Dialog -> {
+                is ResultViewModel.Event.SaveScoreDialog -> {
                     // Handled inside ResultScreen
                 }
             }
@@ -592,10 +594,10 @@ private fun ResultRoute(navController: NavHostController, result: Result) {
         ResultScreen(
             viewModel = viewModel,
             gamePoints = gamePoints,
-            onPlayAgain = { viewModel.navigateToGame() },
-            onShare = { viewModel.navigateToShare(gamePoints) },
-            onRate = { viewModel.navigateToRate() },
-            onViewRanking = { viewModel.navigateToRanking() }
+            onPlayAgain = { viewModel.dispatch(ResultViewModel.Intent.NavigateToGame) },
+            onShare = { viewModel.dispatch(ResultViewModel.Intent.NavigateToShare(gamePoints)) },
+            onRate = { viewModel.dispatch(ResultViewModel.Intent.NavigateToRate) },
+            onViewRanking = { viewModel.dispatch(ResultViewModel.Intent.NavigateToRanking) }
         )
     }
 }
