@@ -321,31 +321,26 @@ private fun PracticeRoute(navController: NavHostController, countryIds: List<Int
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navigation.collect { navigation ->
-            when (navigation) {
-                is GameViewModel.Navigation.Result -> {
+        viewModel.events.collect { event ->
+            when (event) {
+                is GameViewModel.Event.NavigateToResult -> {
                     navController.navigate(
                         Result(
                             points = points,
-                            correctAnswers = navigation.correctAnswers,
-                            totalQuestions = navigation.totalQuestions,
-                            bestStreak = navigation.bestStreak,
-                            timePlayedMs = navigation.timePlayedMs,
-                            completedAllQuestions = navigation.completedAllQuestions,
+                            correctAnswers = event.correctAnswers,
+                            totalQuestions = event.totalQuestions,
+                            bestStreak = event.bestStreak,
+                            timePlayedMs = event.timePlayedMs,
+                            completedAllQuestions = event.completedAllQuestions,
                             gameMode = "Classic"
                         )
                     ) {
                         popUpTo<Main>()
                     }
                 }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.streakMessage.collect { message ->
-            if (message != null) {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                is GameViewModel.Event.StreakMessage ->
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                else -> { /* QuestionRefreshed handled inside GameScreen; banner/ad not used in Practice */ }
             }
         }
     }
@@ -368,10 +363,10 @@ private fun PracticeRoute(navController: NavHostController, countryIds: List<Int
 
                 if (isCorrect) {
                     points += 1
-                    viewModel.onCorrectAnswer()
+                    viewModel.dispatch(GameViewModel.Intent.OnCorrectAnswer)
                 } else {
                     life--
-                    viewModel.onWrongAnswer()
+                    viewModel.dispatch(GameViewModel.Intent.OnWrongAnswer)
                 }
                 stage += 1
             }
@@ -382,13 +377,15 @@ private fun PracticeRoute(navController: NavHostController, countryIds: List<Int
         if (stage > 1) {
             delay(TimeUnit.MILLISECONDS.toMillis(1000))
             if (life < 1) {
-                viewModel.navigateToResult(
-                    points = points.toString(),
-                    totalQuestions = stage - 1,
-                    completedAllQuestions = false
+                viewModel.dispatch(
+                    GameViewModel.Intent.NavigateToResult(
+                        points = points.toString(),
+                        totalQuestions = stage - 1,
+                        completedAllQuestions = false
+                    )
                 )
             } else {
-                viewModel.generateNewStage()
+                viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
             }
         }
     }
@@ -405,7 +402,8 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
     var life by rememberSaveable { mutableIntStateOf(3) }
     var stage by rememberSaveable { mutableIntStateOf(1) }
     var points by rememberSaveable { mutableIntStateOf(0) }
-    var showBanner by remember { mutableStateOf(false) }
+    // Banner visibility is now a UI concern — the VM doesn't drive it.
+    val showBanner = true
 
     val rewardedAdState = rememberRewardedAdState(
         adUnitId = stringResource(R.string.BONIFICADO_GAME),
@@ -432,42 +430,27 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navigation.collect { navigation ->
-            when (navigation) {
-                is GameViewModel.Navigation.Result -> {
+        viewModel.events.collect { event ->
+            when (event) {
+                is GameViewModel.Event.NavigateToResult -> {
                     navController.navigate(
                         Result(
                             points = points,
-                            correctAnswers = navigation.correctAnswers,
-                            totalQuestions = navigation.totalQuestions,
-                            bestStreak = navigation.bestStreak,
-                            timePlayedMs = navigation.timePlayedMs,
-                            completedAllQuestions = navigation.completedAllQuestions,
+                            correctAnswers = event.correctAnswers,
+                            totalQuestions = event.totalQuestions,
+                            bestStreak = event.bestStreak,
+                            timePlayedMs = event.timePlayedMs,
+                            completedAllQuestions = event.completedAllQuestions,
                             gameMode = mode
                         )
                     ) {
                         popUpTo<Main>()
                     }
                 }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.showingAds.collect { model ->
-            when (model) {
-                is GameViewModel.UiModel.ShowBannerAd -> showBanner = model.show
-                is GameViewModel.UiModel.ShowRewardedAd -> rewardedAdState.show()
-                else -> {}
-            }
-        }
-    }
-
-    // Mostrar mensajes de racha como Toast
-    LaunchedEffect(Unit) {
-        viewModel.streakMessage.collect { message ->
-            if (message != null) {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                GameViewModel.Event.ShowRewardedAd -> rewardedAdState.show()
+                is GameViewModel.Event.StreakMessage ->
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                is GameViewModel.Event.QuestionRefreshed -> { /* handled by GameScreen */ }
             }
         }
     }
@@ -499,10 +482,10 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
 
                 if (isCorrect) {
                     points += 1
-                    viewModel.onCorrectAnswer()
+                    viewModel.dispatch(GameViewModel.Intent.OnCorrectAnswer)
                 } else {
                     life--
-                    viewModel.onWrongAnswer()
+                    viewModel.dispatch(GameViewModel.Intent.OnWrongAnswer)
                 }
 
                 stage += 1
@@ -515,14 +498,16 @@ private fun GameRoute(navController: NavHostController, mode: String = "Classic"
             delay(TimeUnit.MILLISECONDS.toMillis(1000))
             if (stage > TOTAL_COUNTRIES || life < 1) {
                 val completedAll = stage > TOTAL_COUNTRIES && life >= 1
-                viewModel.navigateToResult(
-                    points = points.toString(),
-                    totalQuestions = stage - 1,
-                    completedAllQuestions = completedAll
+                viewModel.dispatch(
+                    GameViewModel.Intent.NavigateToResult(
+                        points = points.toString(),
+                        totalQuestions = stage - 1,
+                        completedAllQuestions = completedAll
+                    )
                 )
             } else {
-                viewModel.generateNewStage()
-                if (stage != 0 && stage % 6 == 0) viewModel.showRewardedAd()
+                viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+                if (stage != 0 && stage % 6 == 0) viewModel.dispatch(GameViewModel.Intent.ShowRewardedAd)
             }
         }
     }

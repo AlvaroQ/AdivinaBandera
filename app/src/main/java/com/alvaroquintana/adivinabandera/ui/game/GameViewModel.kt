@@ -1,8 +1,7 @@
 package com.alvaroquintana.adivinabandera.ui.game
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.alvaroquintana.adivinabandera.managers.Analytics
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.MixQuestionType
@@ -19,14 +18,25 @@ import dev.zacsweers.metro.AssistedInject
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+
+/**
+ * Single immutable snapshot of the game screen.
+ *
+ * `responseOptions` lives on the state so reads are synchronous. The
+ * companion [GameViewModel.Event.QuestionRefreshed] is fired in tandem
+ * to let the UI reset answer-button visuals on every new question — the
+ * state is "what's on screen", the event is "a new question just landed".
+ */
+data class GameUiState(
+    val flagIcon: String = "",
+    val countryName: String = "",
+    val currencyQuestion: String = "",
+    val mixQuestionText: String = "",
+    val currentMixType: MixQuestionType? = null,
+    val populationPair: Pair<Country, Country>? = null,
+    val responseOptions: List<String> = emptyList(),
+    val isLoading: Boolean = false
+)
 
 @AssistedInject
 class GameViewModel(
@@ -34,7 +44,7 @@ class GameViewModel(
     @Assisted val forcedCountryPool: List<Int>,
     private val questionGeneratorFactory: QuestionGeneratorFactory,
     private val recordAnswer: RecordAnswerUseCase
-) : ViewModel() {
+) : MviViewModel<GameUiState, GameViewModel.Intent, GameViewModel.Event>(GameUiState()) {
 
     /**
      * Manual assisted factory used by [assistedMetroViewModel] callers in
@@ -49,43 +59,36 @@ class GameViewModel(
         fun create(gameMode: GameMode, forcedCountryPool: List<Int>): GameViewModel
     }
 
+    sealed class Intent {
+        object GenerateNewStage : Intent()
+        object OnCorrectAnswer : Intent()
+        object OnWrongAnswer : Intent()
+        object ShowRewardedAd : Intent()
+        data class NavigateToResult(
+            val points: String,
+            val totalQuestions: Int,
+            val completedAllQuestions: Boolean
+        ) : Intent()
+    }
+
+    sealed class Event {
+        /** Fired every time a new question is loaded so the UI can reset answer states. */
+        data class QuestionRefreshed(val options: List<String>) : Event()
+        data class StreakMessage(val message: String) : Event()
+        object ShowRewardedAd : Event()
+        data class NavigateToResult(
+            val points: String,
+            val correctAnswers: Int,
+            val totalQuestions: Int,
+            val bestStreak: Int,
+            val timePlayedMs: Long,
+            val completedAllQuestions: Boolean
+        ) : Event()
+    }
+
     private val excludedCountryIds = mutableSetOf<Int>()
     private val seenSubdivisionIds = mutableSetOf<String>()
     private var currentQuestion: GeneratedQuestion? = null
-
-    private val _question = MutableStateFlow("")
-    val question: StateFlow<String> = _question.asStateFlow()
-
-    private val _countryName = MutableStateFlow("")
-    val countryName: StateFlow<String> = _countryName.asStateFlow()
-
-    private val _currencyQuestion = MutableStateFlow("")
-    val currencyQuestion: StateFlow<String> = _currencyQuestion.asStateFlow()
-
-    private val _mixQuestionText = MutableStateFlow("")
-    val mixQuestionText: StateFlow<String> = _mixQuestionText.asStateFlow()
-
-    private val _currentMixType = MutableStateFlow<MixQuestionType?>(null)
-    val currentMixType: StateFlow<MixQuestionType?> = _currentMixType.asStateFlow()
-
-    private val _populationPair = MutableStateFlow<Pair<Country, Country>?>(null)
-    val populationPair: StateFlow<Pair<Country, Country>?> = _populationPair.asStateFlow()
-
-    private val _responseOptions = MutableSharedFlow<MutableList<String>>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val responseOptions: SharedFlow<MutableList<String>> = _responseOptions.asSharedFlow()
-
-    private val _progress = MutableStateFlow<UiModel>(UiModel.Loading(false))
-    val progress: StateFlow<UiModel> = _progress.asStateFlow()
-
-    private val _navigation = MutableSharedFlow<Navigation>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val navigation: SharedFlow<Navigation> = _navigation.asSharedFlow()
-
-    private val _showingAds = MutableSharedFlow<UiModel>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val showingAds: SharedFlow<UiModel> = _showingAds.asSharedFlow()
-
-    // --- Tracking de engagement ---
-    private val _streakMessage = MutableSharedFlow<String?>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val streakMessage: SharedFlow<String?> = _streakMessage.asSharedFlow()
 
     private var currentStreak: Int = 0
     private var bestStreak: Int = 0
@@ -95,77 +98,99 @@ class GameViewModel(
     init {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_GAME)
         gameStartTimeMs = System.currentTimeMillis()
-        generateNewStage()
-        _showingAds.tryEmit(UiModel.ShowBannerAd(true))
+        // Note: the first question is intentionally NOT dispatched here. The
+        // screen does it via LaunchedEffect so QuestionRefreshed reaches a
+        // subscribed collector — emitting before any subscriber would lose
+        // the event (replay=0 SharedFlow).
     }
 
-    fun generateNewStage() {
-        viewModelScope.launch {
-            _progress.value = UiModel.Loading(true)
-            val generator = questionGeneratorFactory.forMode(gameMode)
-            val q = generator.generate(
-                GenerationContext(
-                    excludedCountryIds = excludedCountryIds.toSet(),
-                    forcedCountryPool = forcedCountryPool,
-                    seenSubdivisionIds = seenSubdivisionIds.toSet(),
-                    subdivisionAlpha2 = gameMode.regionalAlpha2
-                )
-            )
-            if (q == null) {
-                _progress.value = UiModel.Loading(false)
-                return@launch
-            }
-            apply(q)
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            Intent.GenerateNewStage -> generateNewStage()
+            Intent.OnCorrectAnswer -> onCorrectAnswer()
+            Intent.OnWrongAnswer -> onWrongAnswer()
+            Intent.ShowRewardedAd -> emit(Event.ShowRewardedAd)
+            is Intent.NavigateToResult -> emitResult(intent)
         }
     }
 
-    private fun apply(q: GeneratedQuestion) {
+    private suspend fun generateNewStage() {
+        updateState { it.copy(isLoading = true) }
+        val generator = questionGeneratorFactory.forMode(gameMode)
+        val q = generator.generate(
+            GenerationContext(
+                excludedCountryIds = excludedCountryIds.toSet(),
+                forcedCountryPool = forcedCountryPool,
+                seenSubdivisionIds = seenSubdivisionIds.toSet(),
+                subdivisionAlpha2 = gameMode.regionalAlpha2
+            )
+        )
+        if (q == null) {
+            updateState { it.copy(isLoading = false) }
+            return
+        }
+        applyQuestion(q)
+    }
+
+    private fun applyQuestion(q: GeneratedQuestion) {
         currentQuestion = q
         q.selectedCountryId?.let { excludedCountryIds.add(it) }
         q.seenSubdivisionId?.let { seenSubdivisionIds.add(it) }
 
-        _question.value = q.flagIcon
-        _countryName.value = q.countryName
-        _mixQuestionText.value = q.mixQuestionText
-        _currencyQuestion.value = q.currencyQuestion
-        _currentMixType.value = q.currentMixType
-        _populationPair.value = q.populationPair
-        _responseOptions.tryEmit(q.options.toMutableList())
-        _progress.value = UiModel.Loading(false)
+        val options = q.options.toList()
+        updateState {
+            it.copy(
+                flagIcon = q.flagIcon,
+                countryName = q.countryName,
+                mixQuestionText = q.mixQuestionText,
+                currencyQuestion = q.currencyQuestion,
+                currentMixType = q.currentMixType,
+                populationPair = q.populationPair,
+                responseOptions = options,
+                isLoading = false
+            )
+        }
+        emit(Event.QuestionRefreshed(options))
     }
 
-    fun showRewardedAd() {
-        _showingAds.tryEmit(UiModel.ShowRewardedAd(true))
-    }
-
-    fun onCorrectAnswer() {
+    private suspend fun onCorrectAnswer() {
         correctAnswers++
         currentStreak++
         if (currentStreak > bestStreak) bestStreak = currentStreak
 
-        streakMessageFor(currentStreak)?.let { _streakMessage.tryEmit(it) }
+        streakMessageFor(currentStreak)?.let { emit(Event.StreakMessage(it)) }
 
-        viewModelScope.launch {
-            recordAnswer.invoke(
-                isCorrect = true,
-                alpha2Code = currentQuestion?.selectedCountryAlpha2,
-                gameMode = gameMode.toRouteString(),
-                regionalAlpha2 = gameMode.regionalAlpha2
-            )
-        }
+        recordAnswer.invoke(
+            isCorrect = true,
+            alpha2Code = currentQuestion?.selectedCountryAlpha2,
+            gameMode = gameMode.toRouteString(),
+            regionalAlpha2 = gameMode.regionalAlpha2
+        )
     }
 
-    fun onWrongAnswer() {
+    private suspend fun onWrongAnswer() {
         currentStreak = 0
+        recordAnswer.invoke(
+            isCorrect = false,
+            alpha2Code = currentQuestion?.selectedCountryAlpha2,
+            gameMode = gameMode.toRouteString(),
+            regionalAlpha2 = gameMode.regionalAlpha2
+        )
+    }
 
-        viewModelScope.launch {
-            recordAnswer.invoke(
-                isCorrect = false,
-                alpha2Code = currentQuestion?.selectedCountryAlpha2,
-                gameMode = gameMode.toRouteString(),
-                regionalAlpha2 = gameMode.regionalAlpha2
+    private fun emitResult(intent: Intent.NavigateToResult) {
+        Analytics.analyticsGameFinished(intent.points)
+        val timePlayedMs = System.currentTimeMillis() - gameStartTimeMs
+        emit(
+            Event.NavigateToResult(
+                points = intent.points,
+                correctAnswers = correctAnswers,
+                totalQuestions = intent.totalQuestions,
+                bestStreak = bestStreak,
+                timePlayedMs = timePlayedMs,
+                completedAllQuestions = intent.completedAllQuestions
             )
-        }
+        )
     }
 
     private fun streakMessageFor(streak: Int): String? = when (streak) {
@@ -176,39 +201,9 @@ class GameViewModel(
         else -> if (streak > 15 && streak % 5 == 0) "¡Combo: $streak!" else null
     }
 
-    fun navigateToResult(points: String, totalQuestions: Int, completedAllQuestions: Boolean) {
-        Analytics.analyticsGameFinished(points)
-        val timePlayedMs = System.currentTimeMillis() - gameStartTimeMs
-        _navigation.tryEmit(
-            Navigation.Result(
-                points = points,
-                correctAnswers = correctAnswers,
-                totalQuestions = totalQuestions,
-                bestStreak = bestStreak,
-                timePlayedMs = timePlayedMs,
-                completedAllQuestions = completedAllQuestions
-            )
-        )
-    }
-
+    /** Synchronous getter used by the screen to validate the selected answer. */
     fun getCorrectAnswer(): String = currentQuestion?.correctAnswer ?: ""
 
+    /** Synchronous getter used for analytics / mastery on the answered country. */
     fun getCode2CountryCorrect(): String? = currentQuestion?.selectedCountryAlpha2
-
-    sealed class UiModel {
-        data class Loading(val show: Boolean) : UiModel()
-        data class ShowBannerAd(val show: Boolean) : UiModel()
-        data class ShowRewardedAd(val show: Boolean) : UiModel()
-    }
-
-    sealed class Navigation {
-        data class Result(
-            val points: String,
-            val correctAnswers: Int,
-            val totalQuestions: Int,
-            val bestStreak: Int,
-            val timePlayedMs: Long,
-            val completedAllQuestions: Boolean
-        ) : Navigation()
-    }
 }
