@@ -124,7 +124,7 @@ fun SelectHomeContent(
 
                 DailyRewardCard(
                     reward = uiState.dailyReward,
-                    onClaim = { viewModel.claimDailyReward() },
+                    onClaim = { viewModel.dispatch(com.alvaroquintana.adivinabandera.ui.select.SelectViewModel.Intent.ClaimDailyReward) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }

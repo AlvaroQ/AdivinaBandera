@@ -276,7 +276,7 @@ fun MainScreen(rootNavController: NavHostController) {
                                 rootNavController.navigate(Shop)
                             },
                             onNavigateToPractice = {
-                                val ids = viewModel.uiState.value.weakSpotCountryIds
+                                val ids = viewModel.state.value.weakSpotCountryIds
                                 if (ids.isNotEmpty()) {
                                     rootNavController.navigate(Practice(ids))
                                 }

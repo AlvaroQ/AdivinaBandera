@@ -1,6 +1,5 @@
 package com.alvaroquintana.adivinabandera.ui.select
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alvaroquintana.adivinabandera.managers.Analytics
 import com.alvaroquintana.adivinabandera.managers.CountryMasteryManager
@@ -10,6 +9,7 @@ import com.alvaroquintana.adivinabandera.managers.DailyRewardManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
 import com.alvaroquintana.adivinabandera.managers.RegionalProgressionManager
 import com.alvaroquintana.adivinabandera.managers.StreakManager
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.GameMode
 import com.alvaroquintana.domain.GameModeDescriptor
 import com.alvaroquintana.domain.REGIONAL_UNLOCK_THRESHOLD
@@ -20,10 +20,10 @@ import com.alvaroquintana.domain.cosmetics.CurrencyBalance
 import com.alvaroquintana.domain.regionalAlpha2
 import com.alvaroquintana.domain.regionalChain
 import com.alvaroquintana.domain.regionalPrerequisite
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.launch
 
 data class SelectUiState(
@@ -45,9 +45,9 @@ data class SelectUiState(
     val totalRegionalCount: Int get() = regionalModeDescriptors.size
 }
 
-@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
-@dev.zacsweers.metrox.viewmodel.ViewModelKey(SelectViewModel::class)
-@dev.zacsweers.metro.Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(SelectViewModel::class)
+@Inject
 class SelectViewModel(
     private val streakManager: StreakManager,
     private val dailyChallengeManager: DailyChallengeManager,
@@ -56,70 +56,77 @@ class SelectViewModel(
     private val dailyRewardManager: DailyRewardManager,
     private val countryMasteryManager: CountryMasteryManager,
     private val regionalProgressionManager: RegionalProgressionManager
-) : ViewModel() {
+) : MviViewModel<SelectUiState, SelectViewModel.Intent, SelectViewModel.Event>(SelectUiState()) {
 
-    private val _uiState = MutableStateFlow(SelectUiState())
-    val uiState: StateFlow<SelectUiState> = _uiState.asStateFlow()
+    sealed class Intent {
+        /** Boot intent — loads the screen's full snapshot. */
+        object LoadInitialState : Intent()
+        /** Re-reads regional progression (used when returning from a regional game). */
+        object RefreshRegionalProgression : Intent()
+        /** Player tapped the daily-reward chest. */
+        object ClaimDailyReward : Intent()
+    }
+
+    /** No one-shot side effects on this screen — kept for the type parameter. */
+    sealed class Event
 
     init {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_SELECT_GAME)
-        loadInitialState()
+        // Currency balance is observed continuously, not per-Intent: its
+        // updates are streaming and would be awkward to model as Intents.
         observeBalance()
     }
 
-    private fun loadInitialState() {
-        viewModelScope.launch {
-            val state = streakManager.getStreakState()
-            val atRisk = streakManager.isStreakAtRisk()
-            val playedToday = streakManager.hasPlayedToday()
-            val playerLevel = progressionManager.getCurrentLevel()
-            val totalXp = progressionManager.getTotalXp()
-            val challengeState = dailyChallengeManager.getDailyChallengeState(playerLevel)
-            val descriptors = buildModeDescriptors(playerLevel, totalXp)
-            val regionalSnapshot = regionalProgressionManager.snapshot()
-            val regionalDescriptors = buildRegionalDescriptors(regionalSnapshot)
-            val dailyReward = dailyRewardManager.getTodayReward()
-            val discoveredCount = countryMasteryManager.getDiscoveredCount()
-            val weakSpotIds = countryMasteryManager.getWeakSpotsAsIds()
-            _uiState.update {
-                it.copy(
-                    streakState = state,
-                    isStreakAtRisk = atRisk,
-                    hasPlayedToday = playedToday,
-                    challengeState = challengeState,
-                    currentLevel = playerLevel,
-                    currentXp = totalXp,
-                    gameModeDescriptors = descriptors,
-                    regionalModeDescriptors = regionalDescriptors,
-                    dailyReward = dailyReward,
-                    discoveredCountries = discoveredCount,
-                    weakSpotCountryIds = weakSpotIds
-                )
-            }
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            Intent.LoadInitialState -> loadInitialState()
+            Intent.RefreshRegionalProgression -> refreshRegional()
+            Intent.ClaimDailyReward -> claimDailyReward()
         }
     }
 
-    /** Refresca los descriptors regionales. Se llama tras volver de una partida regional. */
-    fun refreshRegionalProgression() {
-        viewModelScope.launch {
-            val snapshot = regionalProgressionManager.snapshot()
-            _uiState.update { it.copy(regionalModeDescriptors = buildRegionalDescriptors(snapshot)) }
+    private suspend fun loadInitialState() {
+        val state = streakManager.getStreakState()
+        val atRisk = streakManager.isStreakAtRisk()
+        val playedToday = streakManager.hasPlayedToday()
+        val playerLevel = progressionManager.getCurrentLevel()
+        val totalXp = progressionManager.getTotalXp()
+        val challengeState = dailyChallengeManager.getDailyChallengeState(playerLevel)
+        val descriptors = buildModeDescriptors(playerLevel, totalXp)
+        val regionalSnapshot = regionalProgressionManager.snapshot()
+        val regionalDescriptors = buildRegionalDescriptors(regionalSnapshot)
+        val dailyReward = dailyRewardManager.getTodayReward()
+        val discoveredCount = countryMasteryManager.getDiscoveredCount()
+        val weakSpotIds = countryMasteryManager.getWeakSpotsAsIds()
+        updateState {
+            it.copy(
+                streakState = state,
+                isStreakAtRisk = atRisk,
+                hasPlayedToday = playedToday,
+                challengeState = challengeState,
+                currentLevel = playerLevel,
+                currentXp = totalXp,
+                gameModeDescriptors = descriptors,
+                regionalModeDescriptors = regionalDescriptors,
+                dailyReward = dailyReward,
+                discoveredCountries = discoveredCount,
+                weakSpotCountryIds = weakSpotIds
+            )
         }
     }
 
-    /**
-     * Reclama el bono diario y aplica el XP + monedas al jugador.
-     * Si ya fue reclamado hoy, no hace nada.
-     */
-    fun claimDailyReward() {
-        viewModelScope.launch {
-            val reward = dailyRewardManager.getTodayReward()
-            if (!reward.isClaimed) {
-                val claimed = dailyRewardManager.claimReward()
-                progressionManager.addXp(claimed.xpAmount)
-                currencyManager.earnCoins(claimed.coinsAmount, source = "daily_reward")
-                _uiState.update { it.copy(dailyReward = claimed) }
-            }
+    private suspend fun refreshRegional() {
+        val snapshot = regionalProgressionManager.snapshot()
+        updateState { it.copy(regionalModeDescriptors = buildRegionalDescriptors(snapshot)) }
+    }
+
+    private suspend fun claimDailyReward() {
+        val reward = dailyRewardManager.getTodayReward()
+        if (!reward.isClaimed) {
+            val claimed = dailyRewardManager.claimReward()
+            progressionManager.addXp(claimed.xpAmount)
+            currencyManager.earnCoins(claimed.coinsAmount, source = "daily_reward")
+            updateState { it.copy(dailyReward = claimed) }
         }
     }
 
@@ -170,9 +177,8 @@ class SelectViewModel(
     private fun observeBalance() {
         viewModelScope.launch {
             currencyManager.observeBalance().collect { balance ->
-                _uiState.update { it.copy(currencyBalance = balance) }
+                updateState { it.copy(currencyBalance = balance) }
             }
         }
     }
-
 }
