@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" role="img" aria-label="Unit test distribution: 204 tests across 4 Gradle modules, 100 percent passing on JVM">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" role="img" aria-label="Unit test distribution: 250 tests across 4 Gradle modules, 100 percent passing on JVM">
   <title>AdivinaBandera — Unit test coverage</title>
-  <desc>Horizontal bar chart showing 204 unit tests split across 4 modules: app (120), domain (48), usecases (22), data (14). All pass on the JVM via ./gradlew test.</desc>
+  <desc>Horizontal bar chart showing 250 unit tests split across 4 modules: app (144), domain (48), usecases (44), data (14). All pass on the JVM via ./gradlew test.</desc>
 
   <defs>
     <style>
@@ -39,56 +39,58 @@
   </defs>
 
   <!-- Header -->
-  <text x="430" y="38" text-anchor="middle" class="diagram-title">Unit tests · 204 across 4 modules</text>
+  <text x="430" y="38" text-anchor="middle" class="diagram-title">Unit tests · 250 across 4 modules</text>
   <text x="430" y="60" text-anchor="middle" class="diagram-sub">All run on the JVM — no device, no emulator, no flakes</text>
 
-  <!-- Axis ticks -->
+  <!-- Axis ticks (0–150, every 30) -->
   <line x1="195" y1="110" x2="795" y2="110" stroke="#E2E8F0" stroke-width="1"/>
   <g>
     <line x1="195" y1="105" x2="195" y2="115" stroke="#CBD5E1" stroke-width="1"/>
     <text x="195" y="100" text-anchor="middle" class="axis-tick">0</text>
-    <line x1="345" y1="105" x2="345" y2="115" stroke="#CBD5E1" stroke-width="1"/>
-    <text x="345" y="100" text-anchor="middle" class="axis-tick">30</text>
-    <line x1="495" y1="105" x2="495" y2="115" stroke="#CBD5E1" stroke-width="1"/>
-    <text x="495" y="100" text-anchor="middle" class="axis-tick">60</text>
-    <line x1="645" y1="105" x2="645" y2="115" stroke="#CBD5E1" stroke-width="1"/>
-    <text x="645" y="100" text-anchor="middle" class="axis-tick">90</text>
+    <line x1="315" y1="105" x2="315" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="315" y="100" text-anchor="middle" class="axis-tick">30</text>
+    <line x1="435" y1="105" x2="435" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="435" y="100" text-anchor="middle" class="axis-tick">60</text>
+    <line x1="555" y1="105" x2="555" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="555" y="100" text-anchor="middle" class="axis-tick">90</text>
+    <line x1="675" y1="105" x2="675" y2="115" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="675" y="100" text-anchor="middle" class="axis-tick">120</text>
     <line x1="795" y1="105" x2="795" y2="115" stroke="#CBD5E1" stroke-width="1"/>
-    <text x="795" y="100" text-anchor="middle" class="axis-tick">120</text>
+    <text x="795" y="100" text-anchor="middle" class="axis-tick">150</text>
   </g>
 
-  <!-- app: 120 tests -->
+  <!-- app: 144 tests -->
   <text x="65" y="145" text-anchor="start" class="mod-name">app</text>
-  <text x="65" y="163" class="mod-desc">ViewModels · Managers</text>
-  <rect x="195" y="130" width="600" height="44" rx="6" fill="url(#b-app)"/>
-  <text x="215" y="158" class="mod-count">120</text>
-  <text x="260" y="158" class="mod-pct">· 58.8%</text>
+  <text x="65" y="163" class="mod-desc">MviViewModels · Managers</text>
+  <rect x="195" y="130" width="576" height="44" rx="6" fill="url(#b-app)"/>
+  <text x="215" y="158" class="mod-count">144</text>
+  <text x="260" y="158" class="mod-pct">· 57.6%</text>
 
   <!-- domain: 48 tests -->
   <text x="65" y="215" text-anchor="start" class="mod-name">domain</text>
   <text x="65" y="233" class="mod-desc">Streak · Challenge rules</text>
-  <rect x="195" y="200" width="240" height="44" rx="6" fill="url(#b-domain)"/>
+  <rect x="195" y="200" width="192" height="44" rx="6" fill="url(#b-domain)"/>
   <text x="215" y="228" class="mod-count">48</text>
-  <text x="250" y="228" class="mod-pct">· 23.5%</text>
+  <text x="250" y="228" class="mod-pct">· 19.2%</text>
 
-  <!-- usecases: 22 tests -->
+  <!-- usecases: 44 tests -->
   <text x="65" y="285" text-anchor="start" class="mod-name">usecases</text>
   <text x="65" y="303" class="mod-desc">Business orchestration</text>
-  <rect x="195" y="270" width="110" height="44" rx="6" fill="url(#b-usecases)"/>
-  <text x="215" y="298" class="mod-count">22</text>
-  <text x="250" y="298" class="mod-pct">· 10.8%</text>
+  <rect x="195" y="270" width="176" height="44" rx="6" fill="url(#b-usecases)"/>
+  <text x="215" y="298" class="mod-count">44</text>
+  <text x="250" y="298" class="mod-pct">· 17.6%</text>
 
   <!-- data: 14 tests -->
   <text x="65" y="355" text-anchor="start" class="mod-name">data</text>
   <text x="65" y="373" class="mod-desc">Repository contracts</text>
-  <rect x="195" y="340" width="70" height="44" rx="6" fill="url(#b-data)"/>
+  <rect x="195" y="340" width="56" height="44" rx="6" fill="url(#b-data)"/>
   <text x="215" y="368" class="mod-count">14</text>
-  <text x="253" y="368" class="mod-pct">· 6.9%</text>
+  <text x="253" y="368" class="mod-pct">· 5.6%</text>
 
   <!-- Footer: status + command -->
   <line x1="50" y1="410" x2="810" y2="410" stroke="#E2E8F0" stroke-width="1"/>
   <circle cx="70" cy="440" r="5" fill="#22C55E"/>
-  <text x="85" y="445" class="status">204 / 204 passing</text>
+  <text x="85" y="445" class="status">250 / 250 passing</text>
   <text x="260" y="445" class="command">·  0 failures  ·  0 flaky  ·  0 skipped</text>
   <text x="810" y="445" text-anchor="end" class="command">./gradlew test</text>
 </svg>
