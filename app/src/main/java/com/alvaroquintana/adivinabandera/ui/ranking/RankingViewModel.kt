@@ -1,51 +1,44 @@
 package com.alvaroquintana.adivinabandera.ui.ranking
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.alvaroquintana.adivinabandera.managers.Analytics
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.User
 import com.alvaroquintana.usecases.GetRankingScore
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 
-@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
-@dev.zacsweers.metrox.viewmodel.ViewModelKey(RankingViewModel::class)
-@dev.zacsweers.metro.Inject
-class RankingViewModel(private val getRankingScore: GetRankingScore) : ViewModel() {
+data class RankingUiState(
+    val isLoading: Boolean = false,
+    val entries: List<User> = emptyList()
+)
 
-    private val _progress = MutableStateFlow<UiModel>(UiModel.Loading(false))
-    val progress: StateFlow<UiModel> = _progress.asStateFlow()
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(RankingViewModel::class)
+@Inject
+class RankingViewModel(
+    private val getRankingScore: GetRankingScore
+) : MviViewModel<RankingUiState, RankingViewModel.Intent, RankingViewModel.Event>(RankingUiState()) {
 
-    private val _navigation = MutableSharedFlow<Navigation>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val navigation: SharedFlow<Navigation> = _navigation.asSharedFlow()
+    sealed class Intent {
+        object Load : Intent()
+    }
 
-    private val _rankingList = MutableStateFlow<MutableList<User>>(mutableListOf())
-    val rankingList: StateFlow<MutableList<User>> = _rankingList.asStateFlow()
+    /** No one-shot side effects on this screen — kept for the type parameter. */
+    sealed class Event
 
     init {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_RANKING)
-        viewModelScope.launch {
-            _progress.value = UiModel.Loading(true)
-            _rankingList.value = getRanking()
-            _progress.value = UiModel.Loading(false)
+    }
+
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            Intent.Load -> {
+                updateState { it.copy(isLoading = true) }
+                val ranking = getRankingScore.invoke()
+                updateState { it.copy(isLoading = false, entries = ranking) }
+            }
         }
-    }
-
-    private suspend fun getRanking(): MutableList<User> {
-        return getRankingScore.invoke()
-    }
-
-    sealed class Navigation {
-        object Result : Navigation()
-    }
-
-    sealed class UiModel {
-        data class Loading(val show: Boolean) : UiModel()
     }
 }

@@ -1,57 +1,49 @@
 package com.alvaroquintana.adivinabandera.ui.info
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.usecases.GetCountryList
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 
-@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
-@dev.zacsweers.metrox.viewmodel.ViewModelKey(InfoViewModel::class)
-@dev.zacsweers.metro.Inject
-class InfoViewModel(private val getCountryList: GetCountryList) : ViewModel() {
+data class InfoUiState(
+    val isLoading: Boolean = false,
+    val countryList: List<Country> = emptyList()
+)
+
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(InfoViewModel::class)
+@Inject
+class InfoViewModel(
+    private val getCountryList: GetCountryList
+) : MviViewModel<InfoUiState, InfoViewModel.Intent, InfoViewModel.Event>(InfoUiState()) {
+
+    sealed class Intent {
+        /** Loads a specific page. The screen fires LoadPage(0) on first composition. */
+        data class LoadPage(val page: Int) : Intent()
+    }
+
+    /** No one-shot side effects on this screen — kept for the type parameter. */
+    sealed class Event
+
     private val list = mutableListOf<Country>()
     private val loadedPages = mutableSetOf<Int>()
     private var isLoadingPage = false
     private var endReached = false
 
-    private val _progress = MutableStateFlow<UiModel>(UiModel.Loading(false))
-    val progress: StateFlow<UiModel> = _progress.asStateFlow()
-
-    private val _navigation = MutableSharedFlow<Navigation>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val navigation: SharedFlow<Navigation> = _navigation.asSharedFlow()
-
-    private val _countryList = MutableStateFlow<List<Country>>(emptyList())
-    val countryList: StateFlow<List<Country>> = _countryList.asStateFlow()
-
-    private val _showingAds = MutableSharedFlow<UiModel>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val showingAds: SharedFlow<UiModel> = _showingAds.asSharedFlow()
-
-    init {
-        viewModelScope.launch {
-            loadPage(0)
-            _showingAds.tryEmit(UiModel.ShowAd(true))
-        }
-    }
-
-    fun loadMorePrideList(currentPage: Int) {
-        if (currentPage < 0 || isLoadingPage || endReached || loadedPages.contains(currentPage)) return
-
-        viewModelScope.launch {
-            loadPage(currentPage)
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            is Intent.LoadPage -> loadPage(intent.page)
         }
     }
 
     private suspend fun loadPage(currentPage: Int) {
+        if (currentPage < 0 || isLoadingPage || endReached || loadedPages.contains(currentPage)) return
+
         isLoadingPage = true
-        _progress.value = UiModel.Loading(true)
+        updateState { it.copy(isLoading = true) }
         try {
             val page = getCountryList.invoke(currentPage)
             if (page.isEmpty()) {
@@ -61,10 +53,10 @@ class InfoViewModel(private val getCountryList: GetCountryList) : ViewModel() {
 
             loadedPages.add(currentPage)
             appendUniqueCountries(page)
-            _countryList.value = list.toList()
+            updateState { it.copy(countryList = list.toList()) }
         } finally {
             isLoadingPage = false
-            _progress.value = UiModel.Loading(false)
+            updateState { it.copy(isLoading = false) }
         }
     }
 
@@ -79,23 +71,5 @@ class InfoViewModel(private val getCountryList: GetCountryList) : ViewModel() {
                 list.add(country)
             }
         }
-    }
-
-    fun navigateToSelect() {
-        _navigation.tryEmit(Navigation.Select)
-    }
-
-    fun showRewardedAd() {
-        _showingAds.tryEmit(UiModel.ShowRewardedAd(true))
-    }
-
-    sealed class Navigation {
-        object Select : Navigation()
-    }
-
-    sealed class UiModel {
-        data class Loading(val show: Boolean) : UiModel()
-        data class ShowAd(val show: Boolean) : UiModel()
-        data class ShowRewardedAd(val show: Boolean) : UiModel()
     }
 }

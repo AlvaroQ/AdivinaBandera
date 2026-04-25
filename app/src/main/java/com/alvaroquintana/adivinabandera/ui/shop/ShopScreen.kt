@@ -72,14 +72,18 @@ fun ShopScreen(
     onBack: () -> Unit,
     viewModel: ShopViewModel = metroViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.dispatch(ShopViewModel.Intent.Load)
+    }
 
     // Mostrar mensaje de compra como snackbar
     LaunchedEffect(uiState.purchaseMessage) {
         uiState.purchaseMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            viewModel.onPurchaseMessageDismissed()
+            viewModel.dispatch(ShopViewModel.Intent.DismissPurchaseMessage)
         }
     }
 
@@ -101,7 +105,7 @@ fun ShopScreen(
                 // Pestanas de categorias
                 CategoryTabs(
                     selectedCategory = uiState.selectedCategory,
-                    onCategorySelected = { viewModel.onCategorySelected(it) }
+                    onCategorySelected = { viewModel.dispatch(ShopViewModel.Intent.SelectCategory(it)) }
                 )
 
                 // Grilla de items
@@ -118,7 +122,7 @@ fun ShopScreen(
                     ) { shopItem ->
                         ShopItemCard(
                             shopItem = shopItem,
-                            onTap = { viewModel.onItemTapped(shopItem) }
+                            onTap = { viewModel.dispatch(ShopViewModel.Intent.TapItem(shopItem)) }
                         )
                     }
                 }
@@ -143,8 +147,8 @@ fun ShopScreen(
             PurchaseConfirmDialog(
                 shopItem = item,
                 balance = uiState.balance,
-                onConfirm = { viewModel.onPurchaseConfirmed() },
-                onDismiss = { viewModel.onPurchaseDismissed() }
+                onConfirm = { viewModel.dispatch(ShopViewModel.Intent.ConfirmPurchase) },
+                onDismiss = { viewModel.dispatch(ShopViewModel.Intent.DismissPurchase) }
             )
         }
     }

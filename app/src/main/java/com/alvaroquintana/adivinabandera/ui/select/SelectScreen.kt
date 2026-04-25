@@ -49,7 +49,11 @@ fun SelectScreen(
     val detailOpen = LocalDetailOpenState.current
     val backAction = LocalDetailBackAction.current
     val reducedMotion = rememberReducedMotion()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.dispatch(SelectViewModel.Intent.LoadInitialState)
+    }
 
     LaunchedEffect(modesExpanded, regionalExpanded) {
         detailOpen.value = modesExpanded || regionalExpanded
@@ -69,7 +73,7 @@ fun SelectScreen(
 
     // Al cerrar el panel regional, refresca por si el jugador volvió de una partida regional.
     LaunchedEffect(regionalExpanded) {
-        if (regionalExpanded) viewModel.refreshRegionalProgression()
+        if (regionalExpanded) viewModel.dispatch(SelectViewModel.Intent.RefreshRegionalProgression)
     }
 
     SharedTransitionLayout {

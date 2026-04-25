@@ -41,26 +41,29 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToXpLeaderboard: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var imageSheetOpen by remember { mutableStateOf(false) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
-        bitmap?.let { viewModel.saveProfileImage(it.toBase64()) }
+        bitmap?.let { viewModel.dispatch(ProfileViewModel.Intent.SaveProfileImage(it.toBase64())) }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            uriToBase64(context = context, uri = it)?.let(viewModel::saveProfileImage)
+            uriToBase64(context = context, uri = it)?.let { base64 ->
+                viewModel.dispatch(ProfileViewModel.Intent.SaveProfileImage(base64))
+            }
         }
     }
 
     LaunchedEffect(Unit) {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_PROFILE)
+        viewModel.dispatch(ProfileViewModel.Intent.Load)
     }
 
     if (uiState.isLoading) {
@@ -91,7 +94,9 @@ fun ProfileScreen(
                 xpNeededForLevel = uiState.xpNeededForLevel,
                 xpForNextLevel = uiState.xpForNextLevel,
                 globalRank = uiState.globalRank,
-                onNicknameChange = viewModel::onNicknameChanged,
+                onNicknameChange = { nickname ->
+                    viewModel.dispatch(ProfileViewModel.Intent.ChangeNickname(nickname))
+                },
                 onEditImageClick = { imageSheetOpen = true },
                 modifier = Modifier.animateItem()
             )

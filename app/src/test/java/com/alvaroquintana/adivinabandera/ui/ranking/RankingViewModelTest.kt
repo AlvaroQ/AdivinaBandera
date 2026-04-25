@@ -1,6 +1,5 @@
 package com.alvaroquintana.adivinabandera.ui.ranking
 
-import app.cash.turbine.test
 import com.alvaroquintana.adivinabandera.MainDispatcherRule
 import com.alvaroquintana.adivinabandera.managers.Analytics
 import com.alvaroquintana.domain.User
@@ -12,6 +11,8 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.unmockkObject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -20,6 +21,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class RankingViewModelTest {
 
     @get:Rule
@@ -41,7 +43,7 @@ class RankingViewModelTest {
     }
 
     @Test
-    fun `init loads ranking list`() = runTest {
+    fun `Load intent populates state with ranking entries`() = runTest {
         val expectedList = mutableListOf(
             User(name = "Alice", points = "50", score = 50),
             User(name = "Bob", points = "30", score = 30)
@@ -49,21 +51,20 @@ class RankingViewModelTest {
         coEvery { getRankingScore.invoke(any()) } returns expectedList
 
         viewModel = RankingViewModel(getRankingScore)
+        viewModel.dispatch(RankingViewModel.Intent.Load)
+        advanceUntilIdle()
 
-        viewModel.rankingList.test {
-            assertEquals(expectedList, awaitItem())
-        }
+        assertEquals(expectedList, viewModel.state.value.entries)
     }
 
     @Test
-    fun `progress emits Loading false after ranking loaded`() = runTest {
+    fun `Load intent toggles isLoading false after fetching`() = runTest {
         coEvery { getRankingScore.invoke(any()) } returns mutableListOf()
 
         viewModel = RankingViewModel(getRankingScore)
+        viewModel.dispatch(RankingViewModel.Intent.Load)
+        advanceUntilIdle()
 
-        viewModel.progress.test {
-            val state = awaitItem()
-            assertFalse((state as RankingViewModel.UiModel.Loading).show)
-        }
+        assertFalse(viewModel.state.value.isLoading)
     }
 }

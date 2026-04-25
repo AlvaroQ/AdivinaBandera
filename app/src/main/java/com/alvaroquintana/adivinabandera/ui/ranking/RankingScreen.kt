@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alvaroquintana.adivinabandera.ui.components.LeaderboardHeaderCard
 import com.alvaroquintana.adivinabandera.ui.components.LeaderboardItem
@@ -36,11 +37,13 @@ private fun rankingAccentColor(): Color {
 fun RankingScreen(
     viewModel: RankingViewModel
 ) {
-    val progress by viewModel.progress.collectAsStateWithLifecycle()
-    val rankingList by viewModel.rankingList.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
+    val rankingList = uiState.entries
 
-    val isLoading = progress is RankingViewModel.UiModel.Loading &&
-            (progress as RankingViewModel.UiModel.Loading).show
+    LaunchedEffect(Unit) {
+        viewModel.dispatch(RankingViewModel.Intent.Load)
+    }
 
     Box(
         modifier = Modifier

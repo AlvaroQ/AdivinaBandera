@@ -1,23 +1,21 @@
 package com.alvaroquintana.adivinabandera.ui.profile
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.alvaroquintana.adivinabandera.managers.AchievementManager
 import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
 import com.alvaroquintana.adivinabandera.managers.GameStatsManager
 import com.alvaroquintana.adivinabandera.managers.ProgressionManager
 import com.alvaroquintana.adivinabandera.managers.StreakManager
 import com.alvaroquintana.adivinabandera.managers.XpSyncManager
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.Achievement
 import com.alvaroquintana.domain.challenge.ChallengeStats
 import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 
 data class ProfileUiState(
     val isLoading: Boolean = true,
@@ -47,9 +45,9 @@ data class ProfileUiState(
     val challengeStats: ChallengeStats = ChallengeStats()
 )
 
-@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
-@dev.zacsweers.metrox.viewmodel.ViewModelKey(ProfileViewModel::class)
-@dev.zacsweers.metro.Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(ProfileViewModel::class)
+@Inject
 class ProfileViewModel(
     private val progressionManager: ProgressionManager,
     private val gameStatsManager: GameStatsManager,
@@ -58,90 +56,93 @@ class ProfileViewModel(
     private val streakManager: StreakManager,
     private val dailyChallengeManager: DailyChallengeManager,
     private val xpSyncManager: XpSyncManager
-) : ViewModel() {
+) : MviViewModel<ProfileUiState, ProfileViewModel.Intent, ProfileViewModel.Event>(ProfileUiState()) {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
-
-    init {
-        loadProfile()
+    sealed class Intent {
+        object Load : Intent()
+        data class ChangeNickname(val nickname: String) : Intent()
+        data class SaveProfileImage(val imageBase64: String) : Intent()
     }
 
-    private fun loadProfile() {
-        viewModelScope.launch {
-            val totalXp = progressionManager.getTotalXp()
-            val level = progressionManager.getCurrentLevel()
-            val title = progressionManager.getCurrentTitle()
-            val nickname = progressionManager.getNickname()
-            val image = progressionManager.getImageBase64()
+    sealed class Event
 
-            val totalGames = gameStatsManager.getTotalGamesPlayed()
-            val totalCorrect = gameStatsManager.getTotalCorrectAnswers()
-            val accuracy = gameStatsManager.getAccuracy()
-            val bestStreak = gameStatsManager.getBestStreakEver()
-            val perfectGames = gameStatsManager.getTotalPerfectGames()
-            val timePlayed = gameStatsManager.getTotalTimePlayed()
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            Intent.Load -> loadProfile()
+            is Intent.ChangeNickname -> changeNickname(intent.nickname)
+            is Intent.SaveProfileImage -> saveImage(intent.imageBase64)
+        }
+    }
 
-            val unlocked = achievementManager.getUnlockedAchievements()
+    private suspend fun loadProfile() {
+        val totalXp = progressionManager.getTotalXp()
+        val level = progressionManager.getCurrentLevel()
+        val title = progressionManager.getCurrentTitle()
+        val nickname = progressionManager.getNickname()
+        val image = progressionManager.getImageBase64()
 
-            val streakState = streakManager.getStreakState()
-            val challengeStats = dailyChallengeManager.getChallengeStats()
+        val totalGames = gameStatsManager.getTotalGamesPlayed()
+        val totalCorrect = gameStatsManager.getTotalCorrectAnswers()
+        val accuracy = gameStatsManager.getAccuracy()
+        val bestStreak = gameStatsManager.getBestStreakEver()
+        val perfectGames = gameStatsManager.getTotalPerfectGames()
+        val timePlayed = gameStatsManager.getTotalTimePlayed()
 
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
-            val rank = if (uid != null && nickname.isNotBlank()) {
-                try {
-                    getUserGlobalRankUseCase.invoke(uid)
-                } catch (e: Exception) {
-                    FirebaseCrashlytics.getInstance().apply {
-                        log("profile_global_rank_load_failed")
-                        setCustomKey("profile_has_nickname", nickname.isNotBlank())
-                        recordException(e)
-                    }
-                    -1
+        val unlocked = achievementManager.getUnlockedAchievements()
+
+        val streakState = streakManager.getStreakState()
+        val challengeStats = dailyChallengeManager.getChallengeStats()
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val rank = if (uid != null && nickname.isNotBlank()) {
+            try {
+                getUserGlobalRankUseCase.invoke(uid)
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().apply {
+                    log("profile_global_rank_load_failed")
+                    setCustomKey("profile_has_nickname", nickname.isNotBlank())
+                    recordException(e)
                 }
-            } else -1
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    nickname = nickname,
-                    imageBase64 = image,
-                    level = level,
-                    title = title,
-                    totalXp = totalXp,
-                    xpProgressInLevel = ProgressionManager.xpProgressInCurrentLevel(totalXp, level),
-                    xpNeededForLevel = ProgressionManager.xpNeededForCurrentLevel(level),
-                    xpForNextLevel = ProgressionManager.xpForNextLevel(level),
-                    globalRank = rank,
-                    totalGamesPlayed = totalGames,
-                    totalCorrectAnswers = totalCorrect,
-                    accuracy = accuracy,
-                    bestStreakEver = bestStreak,
-                    totalPerfectGames = perfectGames,
-                    totalTimePlayed = timePlayed,
-                    unlockedAchievements = unlocked,
-                    currentDailyStreak = streakState.currentStreak,
-                    bestDailyStreak = streakState.bestStreak,
-                    totalDaysPlayed = streakState.totalDaysPlayed,
-                    freezeTokens = streakState.freezeTokens,
-                    challengeStats = challengeStats
-                )
+                -1
             }
+        } else -1
+
+        updateState {
+            it.copy(
+                isLoading = false,
+                nickname = nickname,
+                imageBase64 = image,
+                level = level,
+                title = title,
+                totalXp = totalXp,
+                xpProgressInLevel = ProgressionManager.xpProgressInCurrentLevel(totalXp, level),
+                xpNeededForLevel = ProgressionManager.xpNeededForCurrentLevel(level),
+                xpForNextLevel = ProgressionManager.xpForNextLevel(level),
+                globalRank = rank,
+                totalGamesPlayed = totalGames,
+                totalCorrectAnswers = totalCorrect,
+                accuracy = accuracy,
+                bestStreakEver = bestStreak,
+                totalPerfectGames = perfectGames,
+                totalTimePlayed = timePlayed,
+                unlockedAchievements = unlocked,
+                currentDailyStreak = streakState.currentStreak,
+                bestDailyStreak = streakState.bestStreak,
+                totalDaysPlayed = streakState.totalDaysPlayed,
+                freezeTokens = streakState.freezeTokens,
+                challengeStats = challengeStats
+            )
         }
     }
 
-    fun onNicknameChanged(nickname: String) {
-        viewModelScope.launch {
-            progressionManager.setNickname(nickname)
-            _uiState.update { it.copy(nickname = nickname) }
-            xpSyncManager.syncPendingIfNeeded()
-        }
+    private suspend fun changeNickname(nickname: String) {
+        progressionManager.setNickname(nickname)
+        updateState { it.copy(nickname = nickname) }
+        xpSyncManager.syncPendingIfNeeded()
     }
 
-    fun saveProfileImage(imageBase64: String) {
-        viewModelScope.launch {
-            progressionManager.setImageBase64(imageBase64)
-            _uiState.update { it.copy(imageBase64 = imageBase64) }
-        }
+    private suspend fun saveImage(imageBase64: String) {
+        progressionManager.setImageBase64(imageBase64)
+        updateState { it.copy(imageBase64 = imageBase64) }
     }
 }

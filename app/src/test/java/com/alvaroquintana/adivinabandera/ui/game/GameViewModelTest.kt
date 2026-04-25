@@ -69,24 +69,22 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `generateNewStage emits question and 4 response options with correct answer present`() = runTest {
-        viewModel.responseOptions.test {
-            viewModel.generateNewStage()
-            val options = awaitItem()
-            assertEquals(4, options.size)
-            assertTrue("Correct country alpha2Code must be among the options", options.contains("AR"))
-        }
+    fun `GenerateNewStage updates state with 4 response options containing the correct answer`() = runTest {
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+        val options = viewModel.state.value.responseOptions
+        assertEquals(4, options.size)
+        assertTrue("Correct country alpha2Code must be among the options", options.contains("AR"))
     }
 
     @Test
-    fun `generateNewStage sets question to country icon`() = runTest {
-        viewModel.generateNewStage()
-        assertEquals(classicQuestion.flagIcon, viewModel.question.value)
+    fun `GenerateNewStage sets flagIcon to country icon`() = runTest {
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+        assertEquals(classicQuestion.flagIcon, viewModel.state.value.flagIcon)
     }
 
     @Test
-    fun `getCode2CountryCorrect returns alpha2Code after generateNewStage`() = runTest {
-        viewModel.generateNewStage()
+    fun `getCode2CountryCorrect returns alpha2Code after GenerateNewStage`() = runTest {
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
 
         val code = viewModel.getCode2CountryCorrect()
         assertNotNull(code)
@@ -95,14 +93,14 @@ class GameViewModelTest {
 
     @Test
     fun `getCorrectAnswer returns the correctAnswer from generated question`() = runTest {
-        viewModel.generateNewStage()
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
         assertEquals("AR", viewModel.getCorrectAnswer())
     }
 
     @Test
-    fun `onCorrectAnswer delegates to RecordAnswerUseCase with correct flag`() = runTest {
-        viewModel.generateNewStage()
-        viewModel.onCorrectAnswer()
+    fun `OnCorrectAnswer delegates to RecordAnswerUseCase with correct flag`() = runTest {
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+        viewModel.dispatch(GameViewModel.Intent.OnCorrectAnswer)
 
         coVerify {
             recordAnswer.invoke(
@@ -115,10 +113,10 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `onWrongAnswer resets streak and delegates to RecordAnswerUseCase`() = runTest {
-        viewModel.generateNewStage()
-        viewModel.onCorrectAnswer() // streak = 1
-        viewModel.onWrongAnswer()
+    fun `OnWrongAnswer resets streak and delegates to RecordAnswerUseCase`() = runTest {
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+        viewModel.dispatch(GameViewModel.Intent.OnCorrectAnswer) // streak = 1
+        viewModel.dispatch(GameViewModel.Intent.OnWrongAnswer)
 
         coVerify {
             recordAnswer.invoke(
@@ -131,22 +129,27 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `navigateToResult emits Navigation Result`() = runTest {
-        viewModel.navigation.test {
-            viewModel.navigateToResult(points = "10", totalQuestions = 5, completedAllQuestions = false)
-            val result = awaitItem()
-            assertTrue(result is GameViewModel.Navigation.Result)
-            assertEquals("10", (result as GameViewModel.Navigation.Result).points)
+    fun `NavigateToResult intent emits Event NavigateToResult`() = runTest {
+        viewModel.events.test {
+            viewModel.dispatch(
+                GameViewModel.Intent.NavigateToResult(
+                    points = "10",
+                    totalQuestions = 5,
+                    completedAllQuestions = false
+                )
+            )
+            val event = awaitItem()
+            assertTrue(event is GameViewModel.Event.NavigateToResult)
+            assertEquals("10", (event as GameViewModel.Event.NavigateToResult).points)
         }
     }
 
     @Test
-    fun `showRewardedAd emits ShowRewardedAd`() = runTest {
-        viewModel.showingAds.test {
-            viewModel.showRewardedAd()
-            val uiModel = awaitItem()
-            assertTrue(uiModel is GameViewModel.UiModel.ShowRewardedAd)
-            assertTrue((uiModel as GameViewModel.UiModel.ShowRewardedAd).show)
+    fun `ShowRewardedAd intent emits Event ShowRewardedAd`() = runTest {
+        viewModel.events.test {
+            viewModel.dispatch(GameViewModel.Intent.ShowRewardedAd)
+            val event = awaitItem()
+            assertEquals(GameViewModel.Event.ShowRewardedAd, event)
         }
     }
 
@@ -158,8 +161,8 @@ class GameViewModelTest {
             questionGeneratorFactory = factory,
             recordAnswer = recordAnswer
         )
-        viewModel.generateNewStage()
-        viewModel.onCorrectAnswer()
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+        viewModel.dispatch(GameViewModel.Intent.OnCorrectAnswer)
 
         coVerify {
             recordAnswer.invoke(

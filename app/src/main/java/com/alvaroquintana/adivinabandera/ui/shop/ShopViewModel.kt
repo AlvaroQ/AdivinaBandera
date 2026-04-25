@@ -1,20 +1,20 @@
 package com.alvaroquintana.adivinabandera.ui.shop
 
 import androidx.compose.runtime.Immutable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alvaroquintana.adivinabandera.managers.CurrencyManager
 import com.alvaroquintana.adivinabandera.managers.UnlockablesManager
+import com.alvaroquintana.adivinabandera.ui.mvi.MviViewModel
 import com.alvaroquintana.domain.cosmetics.CosmeticCategory
 import com.alvaroquintana.domain.cosmetics.CosmeticPurchaseResult
 import com.alvaroquintana.domain.cosmetics.CurrencyBalance
 import com.alvaroquintana.domain.cosmetics.PlayerCosmetics
 import com.alvaroquintana.domain.cosmetics.Unlockable
 import com.alvaroquintana.domain.cosmetics.UnlockCondition
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.launch
 
 /**
@@ -39,85 +39,94 @@ data class ShopUiState(
     val pendingPurchaseItem: ShopItem? = null
 )
 
-@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
-@dev.zacsweers.metrox.viewmodel.ViewModelKey(ShopViewModel::class)
-@dev.zacsweers.metro.Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(ShopViewModel::class)
+@Inject
 class ShopViewModel(
     private val unlockablesManager: UnlockablesManager,
     private val currencyManager: CurrencyManager
-) : ViewModel() {
+) : MviViewModel<ShopUiState, ShopViewModel.Intent, ShopViewModel.Event>(ShopUiState()) {
 
-    private val _uiState = MutableStateFlow(ShopUiState())
-    val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
+    sealed class Intent {
+        object Load : Intent()
+        data class SelectCategory(val category: CosmeticCategory) : Intent()
+        data class TapItem(val item: ShopItem) : Intent()
+        object DismissPurchase : Intent()
+        object ConfirmPurchase : Intent()
+        data class EquipItem(val item: ShopItem) : Intent()
+        object DismissPurchaseMessage : Intent()
+    }
+
+    sealed class Event
 
     init {
-        loadShopData()
+        // Currency balance is observed continuously: emissions are streaming
+        // and would not fit a single Intent. Stays as an in-init observer.
         observeBalance()
     }
 
-    private fun loadShopData() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            val balance = currencyManager.getBalance()
-            val playerCosmetics = unlockablesManager.getPlayerCosmetics()
-            val items = buildShopItems(
-                category = _uiState.value.selectedCategory,
-                playerCosmetics = playerCosmetics
-            )
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    balance = balance,
-                    playerCosmetics = playerCosmetics,
-                    items = items
-                )
+    override suspend fun handleIntent(intent: Intent) {
+        when (intent) {
+            Intent.Load -> loadShopData()
+            is Intent.SelectCategory -> selectCategory(intent.category)
+            is Intent.TapItem -> tapItem(intent.item)
+            Intent.DismissPurchase -> updateState {
+                it.copy(showPurchaseConfirmDialog = false, pendingPurchaseItem = null)
             }
+            Intent.ConfirmPurchase -> confirmPurchase()
+            is Intent.EquipItem -> equipItem(intent.item)
+            Intent.DismissPurchaseMessage -> updateState { it.copy(purchaseMessage = null) }
         }
     }
 
-    /**
-     * Observa el balance de moneda en tiempo real via Flow.
-     * Actualiza el estado de UI cada vez que coins o gems cambian.
-     */
+    private suspend fun loadShopData() {
+        updateState { it.copy(isLoading = true) }
+
+        val balance = currencyManager.getBalance()
+        val playerCosmetics = unlockablesManager.getPlayerCosmetics()
+        val items = buildShopItems(
+            category = currentState.selectedCategory,
+            playerCosmetics = playerCosmetics
+        )
+
+        updateState {
+            it.copy(
+                isLoading = false,
+                balance = balance,
+                playerCosmetics = playerCosmetics,
+                items = items
+            )
+        }
+    }
+
+    /** Continuous balance observer — drives the header even between Intents. */
     private fun observeBalance() {
         viewModelScope.launch {
             currencyManager.observeBalance().collect { balance ->
-                _uiState.update { it.copy(balance = balance) }
+                updateState { it.copy(balance = balance) }
             }
         }
     }
 
-    /**
-     * Cambia la categoria seleccionada y recarga los items filtrados.
-     */
-    fun onCategorySelected(category: CosmeticCategory) {
-        viewModelScope.launch {
-            val playerCosmetics = _uiState.value.playerCosmetics
-            val items = buildShopItems(category, playerCosmetics)
-            _uiState.update {
-                it.copy(
-                    selectedCategory = category,
-                    items = items
-                )
-            }
+    private suspend fun selectCategory(category: CosmeticCategory) {
+        val playerCosmetics = currentState.playerCosmetics
+        val items = buildShopItems(category, playerCosmetics)
+        updateState {
+            it.copy(
+                selectedCategory = category,
+                items = items
+            )
         }
     }
 
-    /**
-     * Muestra el dialogo de confirmacion de compra para el item seleccionado.
-     */
-    fun onItemTapped(shopItem: ShopItem) {
+    private suspend fun tapItem(shopItem: ShopItem) {
         if (shopItem.isOwned) {
-            // Si ya es propio, equipar/desequipar directamente
-            onEquipItem(shopItem)
+            equipItem(shopItem)
         } else {
-            // Mostrar dialogo de confirmacion de compra
             val isPurchasable = shopItem.unlockable.unlockCondition is UnlockCondition.PurchaseWithCoins ||
                 shopItem.unlockable.unlockCondition is UnlockCondition.PurchaseWithGems
             if (isPurchasable) {
-                _uiState.update {
+                updateState {
                     it.copy(
                         showPurchaseConfirmDialog = true,
                         pendingPurchaseItem = shopItem
@@ -127,100 +136,61 @@ class ShopViewModel(
         }
     }
 
-    /**
-     * Cancela el dialogo de confirmacion de compra.
-     */
-    fun onPurchaseDismissed() {
-        _uiState.update {
+    private suspend fun confirmPurchase() {
+        val item = currentState.pendingPurchaseItem ?: return
+        updateState { it.copy(showPurchaseConfirmDialog = false, pendingPurchaseItem = null) }
+        purchaseItem(item.unlockable.id)
+    }
+
+    private suspend fun purchaseItem(itemId: String) {
+        val result = unlockablesManager.purchaseItem(itemId)
+        val message = when (result) {
+            is CosmeticPurchaseResult.Success -> "Obtuviste: ${result.item.name}"
+            is CosmeticPurchaseResult.InsufficientFunds -> {
+                val currency = if (result.currency == "coins") "monedas" else "gemas"
+                "Faltan ${result.needed - result.have} $currency"
+            }
+            is CosmeticPurchaseResult.AlreadyOwned -> "Ya tenes este item"
+            is CosmeticPurchaseResult.ConditionNotMet -> "Condicion no cumplida aun"
+        }
+
+        val updatedCosmetics = unlockablesManager.getPlayerCosmetics()
+        val updatedItems = buildShopItems(currentState.selectedCategory, updatedCosmetics)
+
+        updateState {
             it.copy(
-                showPurchaseConfirmDialog = false,
-                pendingPurchaseItem = null
+                playerCosmetics = updatedCosmetics,
+                items = updatedItems,
+                purchaseMessage = message
             )
         }
     }
 
-    /**
-     * Confirma y ejecuta la compra del item pendiente.
-     */
-    fun onPurchaseConfirmed() {
-        val item = _uiState.value.pendingPurchaseItem ?: return
-        _uiState.update { it.copy(showPurchaseConfirmDialog = false, pendingPurchaseItem = null) }
-        purchaseItem(item.unlockable.id)
-    }
-
-    /**
-     * Intenta comprar el item con la moneda requerida.
-     * Actualiza el estado con el mensaje de resultado.
-     */
-    private fun purchaseItem(itemId: String) {
-        viewModelScope.launch {
-            val result = unlockablesManager.purchaseItem(itemId)
-            val message = when (result) {
-                is CosmeticPurchaseResult.Success -> "Obtuviste: ${result.item.name}"
-                is CosmeticPurchaseResult.InsufficientFunds -> {
-                    val currency = if (result.currency == "coins") "monedas" else "gemas"
-                    "Faltan ${result.needed - result.have} $currency"
-                }
-                is CosmeticPurchaseResult.AlreadyOwned -> "Ya tenes este item"
-                is CosmeticPurchaseResult.ConditionNotMet -> "Condicion no cumplida aun"
-            }
-
-            // Actualizar cosmeticos y lista de items despues de compra exitosa
-            val updatedCosmetics = unlockablesManager.getPlayerCosmetics()
-            val updatedItems = buildShopItems(_uiState.value.selectedCategory, updatedCosmetics)
-
-            _uiState.update {
-                it.copy(
-                    playerCosmetics = updatedCosmetics,
-                    items = updatedItems,
-                    purchaseMessage = message
-                )
-            }
-        }
-    }
-
-    /**
-     * Equipa o desequipa un item ya desbloqueado.
-     * Si el item ya esta equipado, se equipa el item por defecto de la misma categoria.
-     */
-    fun onEquipItem(shopItem: ShopItem) {
+    private suspend fun equipItem(shopItem: ShopItem) {
         if (!shopItem.isOwned) return
 
-        viewModelScope.launch {
-            val category = shopItem.unlockable.category
-            val currentEquipped = getEquippedId(category, _uiState.value.playerCosmetics)
+        val category = shopItem.unlockable.category
+        val currentEquipped = getEquippedId(category, currentState.playerCosmetics)
 
-            val newEquipId = if (currentEquipped == shopItem.unlockable.id) {
-                // Desequipar: volver al default de la categoria
-                getDefaultIdForCategory(category)
-            } else {
-                shopItem.unlockable.id
-            }
+        val newEquipId = if (currentEquipped == shopItem.unlockable.id) {
+            getDefaultIdForCategory(category)
+        } else {
+            shopItem.unlockable.id
+        }
 
-            unlockablesManager.equipItem(newEquipId, category)
+        unlockablesManager.equipItem(newEquipId, category)
 
-            val updatedCosmetics = unlockablesManager.getPlayerCosmetics()
-            val updatedItems = buildShopItems(category, updatedCosmetics)
+        val updatedCosmetics = unlockablesManager.getPlayerCosmetics()
+        val updatedItems = buildShopItems(category, updatedCosmetics)
 
-            _uiState.update {
-                it.copy(
-                    playerCosmetics = updatedCosmetics,
-                    items = updatedItems
-                )
-            }
+        updateState {
+            it.copy(
+                playerCosmetics = updatedCosmetics,
+                items = updatedItems
+            )
         }
     }
 
-    /**
-     * Descarta el mensaje de compra (snackbar/toast).
-     */
-    fun onPurchaseMessageDismissed() {
-        _uiState.update { it.copy(purchaseMessage = null) }
-    }
-
-    /**
-     * Construye la lista de ShopItem para una categoria con estado del jugador.
-     */
     private fun buildShopItems(
         category: CosmeticCategory,
         playerCosmetics: PlayerCosmetics

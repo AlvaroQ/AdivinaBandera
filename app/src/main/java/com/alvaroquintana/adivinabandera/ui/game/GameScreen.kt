@@ -72,13 +72,13 @@ fun GameScreen(
     points: Int = 0,
     onAnswerSelected: (selectedIndex: Int, correctAnswer: String, options: List<String>) -> Unit
 ) {
-    val progress by viewModel.progress.collectAsStateWithLifecycle()
-    val flagBase64 by viewModel.question.collectAsStateWithLifecycle()
-    val countryName by viewModel.countryName.collectAsStateWithLifecycle()
-    val currencyQuestion by viewModel.currencyQuestion.collectAsStateWithLifecycle()
-    val populationPair by viewModel.populationPair.collectAsStateWithLifecycle()
-    val currentMixType by viewModel.currentMixType.collectAsStateWithLifecycle()
-    val mixQuestionText by viewModel.mixQuestionText.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val flagBase64 = uiState.flagIcon
+    val countryName = uiState.countryName
+    val currencyQuestion = uiState.currencyQuestion
+    val populationPair = uiState.populationPair
+    val currentMixType = uiState.currentMixType
+    val mixQuestionText = uiState.mixQuestionText
 
     val isCapitalMode = viewModel.gameMode == GameMode.CapitalByFlag
     val isCurrencyMode = viewModel.gameMode == GameMode.CurrencyDetective
@@ -94,8 +94,7 @@ fun GameScreen(
         currentMixType == MixQuestionType.FLAG_TO_CAPITAL
     )
 
-    val isLoading = progress is GameViewModel.UiModel.Loading &&
-            (progress as GameViewModel.UiModel.Loading).show
+    val isLoading = uiState.isLoading
 
     var rawOptions by remember { mutableStateOf(listOf("", "", "", "")) }
     var displayOptions by remember { mutableStateOf(listOf("", "", "", "")) }
@@ -111,30 +110,34 @@ fun GameScreen(
         )
     }
 
+    // The very first question is dispatched here so the events collector
+    // below is already subscribed when QuestionRefreshed fires.
     LaunchedEffect(Unit) {
-        viewModel.responseOptions.collect { optionList ->
-            rawOptions = optionList.toList()
-            // Re-read mix type at collection time (StateFlow.value is always current)
-            val mixType = viewModel.currentMixType.value
-            val isMixCapitalNow = isWorldMixMode && mixType == MixQuestionType.FLAG_TO_CAPITAL
-            displayOptions = if (isCapitalMode || isMixCapitalNow || isSubdivisionMode) {
-                // Capital modes, WorldMix capital types, and subdivision mode: options are text names, display as-is
-                optionList.toList()
-            } else {
-                // Classic, CurrencyDetective, and WorldMix non-capital types use alpha2codes → country names
-                // Population mode also uses alpha2codes but renders differently
-                optionList.map { alpha2ToDisplayName(it) }
-            }
-            // Reset states to match new options size (supports both 2 and 4 options)
-            while (answerStates.size < optionList.size) answerStates.add(AnswerState.NEUTRAL)
-            while (answerStates.size > optionList.size) answerStates.removeLastOrNull()
-            for (i in answerStates.indices) {
-                answerStates[i] = AnswerState.NEUTRAL
-            }
-            buttonsEnabled = true
+        viewModel.dispatch(GameViewModel.Intent.GenerateNewStage)
+    }
 
-            if (!buttonsVisible) {
-                buttonsVisible = true
+    // QuestionRefreshed events fire once per new question — they reset
+    // the answer-button visuals. The option list itself is also in state
+    // (uiState.responseOptions) for synchronous reads elsewhere.
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            if (event is GameViewModel.Event.QuestionRefreshed) {
+                val optionList = event.options
+                rawOptions = optionList
+                val mixType = viewModel.state.value.currentMixType
+                val isMixCapitalNow = isWorldMixMode && mixType == MixQuestionType.FLAG_TO_CAPITAL
+                displayOptions = if (isCapitalMode || isMixCapitalNow || isSubdivisionMode) {
+                    optionList
+                } else {
+                    optionList.map { alpha2ToDisplayName(it) }
+                }
+                while (answerStates.size < optionList.size) answerStates.add(AnswerState.NEUTRAL)
+                while (answerStates.size > optionList.size) answerStates.removeLastOrNull()
+                for (i in answerStates.indices) {
+                    answerStates[i] = AnswerState.NEUTRAL
+                }
+                buttonsEnabled = true
+                if (!buttonsVisible) buttonsVisible = true
             }
         }
     }

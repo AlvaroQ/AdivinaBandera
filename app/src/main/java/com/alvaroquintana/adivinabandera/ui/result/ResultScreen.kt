@@ -46,17 +46,18 @@ fun ResultScreen(
     onRate: () -> Unit,
     onViewRanking: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     var showSaveDialog by remember { mutableStateOf(false) }
     var pendingPoints by remember { mutableStateOf("") }
 
-    // Observe navigation events to show the save dialog
+    // Observe one-shot events to show the save dialog. Other events
+    // (Game / Rate / Ranking / Share) are handled by the parent route.
     LaunchedEffect(Unit) {
-        viewModel.navigation.collect { nav ->
-            when (nav) {
-                is ResultViewModel.Navigation.Dialog -> {
-                    pendingPoints = nav.points
+        viewModel.events.collect { event ->
+            when (event) {
+                is ResultViewModel.Event.SaveScoreDialog -> {
+                    pendingPoints = event.points
                     showSaveDialog = true
                 }
                 else -> { /* handled by parent route */ }
@@ -160,7 +161,11 @@ fun ResultScreen(
         SaveRankingDialog(
             points = pendingPoints,
             onSave = { name ->
-                viewModel.saveTopScore(User(name = name, points = pendingPoints, score = pendingPoints.toIntOrNull() ?: 0))
+                viewModel.dispatch(
+                    ResultViewModel.Intent.SaveTopScore(
+                        User(name = name, points = pendingPoints, score = pendingPoints.toIntOrNull() ?: 0)
+                    )
+                )
                 showSaveDialog = false
             },
             onDismiss = { showSaveDialog = false }
@@ -172,7 +177,7 @@ fun ResultScreen(
             newLevel = uiState.newLevel,
             newTitle = uiState.newTitle,
             xpGained = uiState.xpGained,
-            onDismiss = { viewModel.dismissLevelUpDialog() }
+            onDismiss = { viewModel.dispatch(ResultViewModel.Intent.DismissLevelUp) }
         )
     }
 
@@ -180,7 +185,7 @@ fun ResultScreen(
     if (uiState.showStreakDialog && streakResult != null) {
         StreakCelebrationDialog(
             streakCheckResult = streakResult,
-            onDismiss = { viewModel.dismissStreakDialog() }
+            onDismiss = { viewModel.dispatch(ResultViewModel.Intent.DismissStreakDialog) }
         )
     }
 
@@ -188,7 +193,7 @@ fun ResultScreen(
     if (unlockEvent is UnlockEvent.ModeUnlocked) {
         ModeUnlockCelebration(
             modeName = unlockEvent.modeName,
-            onDismiss = { viewModel.dismissModeUnlockCelebration() }
+            onDismiss = { viewModel.dispatch(ResultViewModel.Intent.DismissModeUnlock) }
         )
     }
 
@@ -196,7 +201,7 @@ fun ResultScreen(
     if (mysteryBox != null) {
         MysteryBoxDialog(
             reward = mysteryBox,
-            onDismiss = { viewModel.dismissMysteryBox() }
+            onDismiss = { viewModel.dispatch(ResultViewModel.Intent.DismissMysteryBox) }
         )
     }
 }
