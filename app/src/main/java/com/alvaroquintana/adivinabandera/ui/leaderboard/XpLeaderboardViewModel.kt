@@ -15,6 +15,9 @@ data class XpLeaderboardUiState(
     val entries: List<XpLeaderboardEntry> = emptyList()
 )
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(XpLeaderboardViewModel::class)
+@dev.zacsweers.metro.Inject
 class XpLeaderboardViewModel(
     private val getXpLeaderboardUseCase: GetXpLeaderboardUseCase
 ) : ViewModel() {

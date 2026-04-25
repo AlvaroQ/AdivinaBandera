@@ -47,6 +47,9 @@ data class ProfileUiState(
     val challengeStats: ChallengeStats = ChallengeStats()
 )
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(ProfileViewModel::class)
+@dev.zacsweers.metro.Inject
 class ProfileViewModel(
     private val progressionManager: ProgressionManager,
     private val gameStatsManager: GameStatsManager,

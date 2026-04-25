@@ -39,6 +39,9 @@ data class ShopUiState(
     val pendingPurchaseItem: ShopItem? = null
 )
 
+@dev.zacsweers.metro.ContributesIntoMap(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metrox.viewmodel.ViewModelKey(ShopViewModel::class)
+@dev.zacsweers.metro.Inject
 class ShopViewModel(
     private val unlockablesManager: UnlockablesManager,
     private val currencyManager: CurrencyManager

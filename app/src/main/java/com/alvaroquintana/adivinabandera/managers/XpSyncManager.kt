@@ -9,11 +9,18 @@ import com.alvaroquintana.domain.XpLeaderboardEntry
 import com.alvaroquintana.usecases.engagement.XpSyncService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class XpSyncManager(
     private val dataStore: DataStore<Preferences>,
     private val progressionManager: ProgressionManager,

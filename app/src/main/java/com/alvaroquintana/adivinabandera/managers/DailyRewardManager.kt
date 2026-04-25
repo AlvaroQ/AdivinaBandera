@@ -4,12 +4,17 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.DailyRewardKeys
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.random.Random
 
+@SingleIn(AppScope::class)
+@Inject
 class DailyRewardManager(private val dataStore: DataStore<Preferences>) {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)

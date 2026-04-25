@@ -65,12 +65,12 @@ import com.alvaroquintana.adivinabandera.ui.theme.getBackgroundGradient
 import com.alvaroquintana.domain.cosmetics.CosmeticCategory
 import com.alvaroquintana.domain.cosmetics.CosmeticTier
 import com.alvaroquintana.domain.cosmetics.UnlockCondition
-import org.koin.androidx.compose.koinViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 @Composable
 fun ShopScreen(
     onBack: () -> Unit,
-    viewModel: ShopViewModel = koinViewModel()
+    viewModel: ShopViewModel = metroViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }

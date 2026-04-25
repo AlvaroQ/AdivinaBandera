@@ -6,11 +6,18 @@ import androidx.datastore.preferences.core.edit
 import com.alvaroquintana.adivinabandera.common.DataStoreKeys.GameStatsKeys
 import com.alvaroquintana.domain.GameResult
 import com.alvaroquintana.usecases.engagement.GameStatsService
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class GameStatsManager(private val dataStore: DataStore<Preferences>) : GameStatsService {
 
     private val mutex = Mutex()

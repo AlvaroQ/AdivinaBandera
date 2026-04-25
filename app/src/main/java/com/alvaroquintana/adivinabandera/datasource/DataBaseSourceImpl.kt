@@ -125,6 +125,8 @@ private data class GameFirebaseDto(
     var hasVisual: Boolean = false
 )
 
+@dev.zacsweers.metro.ContributesBinding(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.Inject
 class DataBaseSourceImpl(
     private val countryDao: CountryDao,
     private val syncMetadataDao: SyncMetadataDao,

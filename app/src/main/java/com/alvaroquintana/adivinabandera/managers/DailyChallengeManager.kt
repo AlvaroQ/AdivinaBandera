@@ -44,6 +44,9 @@ private val Context.challengeDataStore: DataStore<Preferences> by preferencesDat
  * Las funciones privadas que operan dentro del lock NO adquieren el mutex nuevamente
  * para evitar deadlocks (Kotlin Mutex NO es reentrant).
  */
+@dev.zacsweers.metro.ContributesBinding(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.SingleIn(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.Inject
 class DailyChallengeManager(private val context: Context) : DailyChallengeService {
 
     private val dataStore get() = context.challengeDataStore

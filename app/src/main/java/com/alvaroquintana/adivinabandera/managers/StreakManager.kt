@@ -8,6 +8,10 @@ import com.alvaroquintana.domain.StreakCheckResult
 import com.alvaroquintana.domain.StreakRules
 import com.alvaroquintana.domain.StreakState
 import com.alvaroquintana.usecases.engagement.StreakService
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,9 +30,10 @@ import java.util.Locale
  *
  * El Mutex garantiza que no haya condiciones de carrera si se llama
  * onGameCompleted() concurrentemente (ej: doble tap rapido en resultado).
- *
- * Registrado como Koin single en appModule.
  */
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class StreakManager(private val dataStore: DataStore<Preferences>) : StreakService {
 
     private val mutex = Mutex()

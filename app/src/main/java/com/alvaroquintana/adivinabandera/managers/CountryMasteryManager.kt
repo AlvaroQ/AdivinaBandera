@@ -3,7 +3,14 @@ package com.alvaroquintana.adivinabandera.managers
 import com.alvaroquintana.data.datasource.DataBaseSource
 import com.alvaroquintana.domain.CountryStats
 import com.alvaroquintana.usecases.engagement.CountryMasteryService
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
+@Inject
 class CountryMasteryManager(private val dataBaseSource: DataBaseSource) : CountryMasteryService {
 
     data class RegionMastery(

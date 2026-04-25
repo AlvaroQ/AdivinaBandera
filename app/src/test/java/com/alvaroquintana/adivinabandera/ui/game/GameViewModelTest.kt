@@ -55,7 +55,12 @@ class GameViewModelTest {
         every { factory.forMode(any()) } returns generator
         coEvery { generator.generate(any()) } returns classicQuestion
 
-        viewModel = GameViewModel(factory, recordAnswer)
+        viewModel = GameViewModel(
+            gameMode = GameMode.Classic,
+            forcedCountryPool = emptyList(),
+            questionGeneratorFactory = factory,
+            recordAnswer = recordAnswer
+        )
     }
 
     @After
@@ -147,7 +152,12 @@ class GameViewModelTest {
 
     @Test
     fun `regional mode forwards regionalAlpha2 to RecordAnswerUseCase`() = runTest {
-        viewModel = GameViewModel(factory, recordAnswer, GameMode.RegionSpain)
+        viewModel = GameViewModel(
+            gameMode = GameMode.RegionSpain,
+            forcedCountryPool = emptyList(),
+            questionGeneratorFactory = factory,
+            recordAnswer = recordAnswer
+        )
         viewModel.generateNewStage()
         viewModel.onCorrectAnswer()
 

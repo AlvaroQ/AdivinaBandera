@@ -12,6 +12,7 @@ import com.alvaroquintana.usecases.engagement.GameStatsService
 import com.alvaroquintana.usecases.engagement.ProgressionService
 import com.alvaroquintana.usecases.engagement.StreakService
 import com.alvaroquintana.usecases.engagement.XpSyncService
+import dev.zacsweers.metro.Inject
 
 /**
  * Orchestrates all post-game side effects: stats, streak, XP, achievements,
@@ -22,6 +23,7 @@ import com.alvaroquintana.usecases.engagement.XpSyncService
  * for Clean Architecture: DataSources belong to the data layer; orchestration
  * of business rules belongs to application services.
  */
+@Inject
 class ProcessGameResultUseCase(
     private val gameStats: GameStatsService,
     private val progression: ProgressionService,

@@ -17,6 +17,9 @@ import com.alvaroquintana.usecases.question.generators.worldmix.FlagToCapitalQue
 import com.alvaroquintana.usecases.question.generators.worldmix.LanguageQuestionGenerator
 import com.alvaroquintana.usecases.question.generators.worldmix.NeighborChallengeQuestionGenerator
 import com.alvaroquintana.usecases.question.generators.worldmix.WorldMixQuestionGenerator
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 /**
  * Selects the right [QuestionGenerator] for a given [GameMode].
@@ -25,6 +28,8 @@ import com.alvaroquintana.usecases.question.generators.worldmix.WorldMixQuestion
  * ClassicQuestionGenerator is shared with WorldMix's FLAG_TO_COUNTRY subtype —
  * they produce the same output; the composite adds the mix-type tag.
  */
+@SingleIn(AppScope::class)
+@Inject
 class QuestionGeneratorFactory(
     getCountryById: GetCountryById,
     getRandomCountries: GetRandomCountries,

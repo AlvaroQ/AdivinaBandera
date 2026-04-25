@@ -8,6 +8,8 @@ import com.alvaroquintana.data.datasource.PreferencesDataSource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+@dev.zacsweers.metro.ContributesBinding(dev.zacsweers.metro.AppScope::class)
+@dev.zacsweers.metro.Inject
 class PreferencesDataSourceImpl(
     private val dataStore: DataStore<Preferences>
 ) : PreferencesDataSource {
