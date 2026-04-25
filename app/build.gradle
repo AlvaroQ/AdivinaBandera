@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.metro)
 }
 
 android {
@@ -108,11 +109,18 @@ dependencies {
     implementation libs.firebase.crashlytics
     implementation libs.guava.listenablefuture
 
-    // DI
+    // DI — Koin (runtime, being replaced by Metro)
     implementation platform(libs.koin.bom)
     implementation libs.koin.android
     implementation libs.koin.androidx.compose
     implementation libs.koin.compose.viewmodel
+
+    // DI — Metro (compile-time, replaces Koin)
+    // metrox-android NOT used: it pulls minSdk 28 (AppComponentFactory) and ships
+    // helpers for Fragment/WorkManager wiring we don't need in a pure-Compose app.
+    // The AppGraph is instantiated manually in AdivinaApp.onCreate() via createGraphFactory.
+    implementation libs.metrox.viewmodel
+    implementation libs.metrox.viewmodel.compose
 
     // Images
     implementation libs.coil.compose
