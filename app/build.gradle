@@ -109,16 +109,11 @@ dependencies {
     implementation libs.firebase.crashlytics
     implementation libs.guava.listenablefuture
 
-    // DI — Koin (runtime, being replaced by Metro)
-    implementation platform(libs.koin.bom)
-    implementation libs.koin.android
-    implementation libs.koin.androidx.compose
-    implementation libs.koin.compose.viewmodel
-
-    // DI — Metro (compile-time, replaces Koin)
-    // metrox-android NOT used: it pulls minSdk 28 (AppComponentFactory) and ships
-    // helpers for Fragment/WorkManager wiring we don't need in a pure-Compose app.
-    // The AppGraph is instantiated manually in AdivinaApp.onCreate() via createGraphFactory.
+    // DI — Metro (compile-time, Kotlin compiler plugin)
+    // metrox-android is intentionally NOT pulled in: its AAR declares minSdk 28
+    // (uses AppComponentFactory) and we target API 23+. Its helpers are Fragment
+    // and Worker oriented — unnecessary in this pure-Compose app where the
+    // AppGraph is instantiated manually in AdivinaApp.onCreate().
     implementation libs.metrox.viewmodel
     implementation libs.metrox.viewmodel.compose
 

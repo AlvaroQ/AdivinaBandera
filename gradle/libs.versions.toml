@@ -3,7 +3,6 @@ kotlin = "2.3.20"
 agp = "9.1.1"
 ksp = "2.3.6"
 coroutines = "1.10.2"
-koin-bom = "4.2.1"
 metro = "0.10.3"
 navigation = "2.9.7"
 room = "2.8.4"
@@ -69,7 +68,6 @@ compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
-koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 
 # Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
@@ -79,14 +77,11 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 
-# Third party
-koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin-bom" }
-koin-android = { group = "io.insert-koin", name = "koin-android" }
-koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel" }
-
-# Metro (compile-time DI — replaces Koin)
+# DI — Metro (compile-time)
 metrox-viewmodel = { group = "dev.zacsweers.metro", name = "metrox-viewmodel", version.ref = "metro" }
 metrox-viewmodel-compose = { group = "dev.zacsweers.metro", name = "metrox-viewmodel-compose", version.ref = "metro" }
+
+# Third party
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
