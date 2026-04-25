@@ -63,11 +63,13 @@ fun InfoScreen(
     val backAction = LocalDetailBackAction.current
     val reducedMotion = rememberReducedMotion()
 
-    val progress by viewModel.progress.collectAsStateWithLifecycle()
-    val isLoading = progress is InfoViewModel.UiModel.Loading &&
-            (progress as InfoViewModel.UiModel.Loading).show
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
+    val countryList = uiState.countryList
 
-    val countryList by viewModel.countryList.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(0))
+    }
 
     LaunchedEffect(selectedAlpha2) {
         detailOpen.value = selectedAlpha2 != null
@@ -141,7 +143,7 @@ fun InfoScreen(
                 onLoadMore = { next ->
                     if (pendingPage == null && next == currentPage + 1) {
                         pendingPage = next
-                        viewModel.loadMorePrideList(next)
+                        viewModel.dispatch(InfoViewModel.Intent.LoadPage(next))
                     }
                 }
             )
@@ -159,7 +161,7 @@ fun InfoScreen(
                 onLoadMore = { next ->
                     if (pendingPage == null && next == currentPage + 1) {
                         pendingPage = next
-                        viewModel.loadMorePrideList(next)
+                        viewModel.dispatch(InfoViewModel.Intent.LoadPage(next))
                     }
                 }
             )

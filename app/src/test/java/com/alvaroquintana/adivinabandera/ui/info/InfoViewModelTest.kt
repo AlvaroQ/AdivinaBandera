@@ -1,6 +1,5 @@
 package com.alvaroquintana.adivinabandera.ui.info
 
-import app.cash.turbine.test
 import com.alvaroquintana.adivinabandera.MainDispatcherRule
 import com.alvaroquintana.domain.Country
 import com.alvaroquintana.usecases.GetCountryList
@@ -37,60 +36,45 @@ class InfoViewModelTest {
     @Before
     fun setUp() {
         getCountryList = mockk()
-        // init block calls getCountryList(0), so mock page 0 before construction
         coEvery { getCountryList.invoke(0) } returns page0Countries
         viewModel = InfoViewModel(getCountryList)
     }
 
     @Test
-    fun `loadMorePrideList emits accumulated country list`() = runTest {
+    fun `LoadPage intent accumulates pages in state`() = runTest {
         coEvery { getCountryList.invoke(1) } returns page1Countries
+
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(0))
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(1))
         advanceUntilIdle()
 
-        viewModel.countryList.test {
-            skipItems(1)
-            viewModel.loadMorePrideList(1)
-            val emitted = awaitItem()
-            assertTrue(emitted.containsAll(page0Countries))
-            assertTrue(emitted.containsAll(page1Countries))
-        }
+        val emitted = viewModel.state.value.countryList
+        assertTrue(emitted.containsAll(page0Countries))
+        assertTrue(emitted.containsAll(page1Countries))
     }
 
     @Test
-    fun `loadMorePrideList accumulates results on subsequent calls`() = runTest {
+    fun `LoadPage accumulates total size after multiple pages`() = runTest {
         coEvery { getCountryList.invoke(1) } returns page1Countries
+
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(0))
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(1))
         advanceUntilIdle()
 
-        viewModel.countryList.test {
-            skipItems(1)
-            viewModel.loadMorePrideList(1)
-            val emitted = awaitItem()
-            // After init loaded page0 (2 items) and loadMore loaded page1 (2 items),
-            // the internal list should have accumulated both pages
-            assertEquals(page0Countries.size + page1Countries.size, emitted.size)
-            assertTrue(emitted.containsAll(page0Countries))
-            assertTrue(emitted.containsAll(page1Countries))
-        }
+        val emitted = viewModel.state.value.countryList
+        assertEquals(page0Countries.size + page1Countries.size, emitted.size)
     }
 
     @Test
-    fun `loadMorePrideList ignores duplicated page requests`() = runTest {
+    fun `LoadPage ignores duplicated page requests`() = runTest {
         coEvery { getCountryList.invoke(1) } returns page1Countries
-        advanceUntilIdle()
 
-        viewModel.loadMorePrideList(1)
-        viewModel.loadMorePrideList(1)
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(0))
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(1))
+        viewModel.dispatch(InfoViewModel.Intent.LoadPage(1))
         advanceUntilIdle()
 
         coVerify(exactly = 1) { getCountryList.invoke(1) }
-        assertEquals(page0Countries.size + page1Countries.size, viewModel.countryList.value.size)
-    }
-
-    @Test
-    fun `navigateToSelect emits Navigation Select`() = runTest {
-        viewModel.navigation.test {
-            viewModel.navigateToSelect()
-            assertEquals(InfoViewModel.Navigation.Select, awaitItem())
-        }
+        assertEquals(page0Countries.size + page1Countries.size, viewModel.state.value.countryList.size)
     }
 }
