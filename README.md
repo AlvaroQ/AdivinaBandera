@@ -26,17 +26,9 @@ It is also a long-lived production codebase that doubles as a real-world referen
 
 ## Screenshots
 
-<table align="center">
-  <tr>
-    <td align="center"><img src="capture/es/image1.jpg" width="180"><br/><sub>Game mode selection</sub></td>
-    <td align="center"><img src="capture/es/image2.jpg" width="180"><br/><sub>Flag question in play</sub></td>
-    <td align="center"><img src="capture/es/image3.jpg" width="180"><br/><sub>Capital by flag</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="capture/es/image4.jpg" width="180"><br/><sub>Result & XP earned</sub></td>
-    <td align="center"><img src="capture/es/image5.jpg" width="180"><br/><sub>Global ranking</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="capture/es/landing_page.png" alt="AdivinaBandera — Mundo de Banderas. Tu Guía Completa de Banderas y Geografía. 249+ banderas, mapas detallados, desafíos diarios, estadísticas clave de países, basado en datos oficiales." width="720">
+</p>
 
 ---
 
@@ -98,6 +90,60 @@ Four Gradle modules, one responsibility each:
 - **`domain`** — Pure Kotlin entities: `Country`, `Subdivision`, `Streak`, `DailyChallenge`, `PlayerCosmetics`, `XpLeaderboardEntry`. Zero Android imports.
 
 The dependency rule is enforced by the Gradle graph itself: if `domain` tried to import anything Android, Gradle wouldn't compile it. Every screen ViewModel extends a shared `MviViewModel<S, I, E>` base and exposes three primitives: `state: StateFlow<UiState>`, `events: SharedFlow<UiEvent>` (navigation, toasts, dialog requests) and `dispatch(intent: I)` as the single UI entry point. Metro generates the dependency graph at compile time — `@DependencyGraph(AppScope::class) interface AppGraph` is the root, populated by `@ContributesBinding` and `@Inject` annotations across all four modules. Missing or cyclic bindings fail the build, not the runtime.
+
+### How a screen is wired (MVI in practice)
+
+Every screen follows the same shape — three sealed types, one VM extending `MviViewModel`, one Composable that reads `state` / `events` and writes through `dispatch`. Here is `RankingScreen` end-to-end as the smallest concrete example:
+
+```kotlin
+// 1 ─ Immutable state. The whole screen renders from this one snapshot.
+data class RankingUiState(
+    val isLoading: Boolean = false,
+    val entries: List<User> = emptyList()
+)
+
+// 2 ─ Every external write to the VM is a sealed Intent.
+//     The screen never calls a mutator method — it dispatches.
+sealed class Intent {
+    object Load : Intent()
+}
+
+// 3 ─ One-shot side effects (navigation, toasts, dialog requests) are Events.
+//     RankingViewModel has none, so Event is left empty for type-shape parity.
+sealed class Event
+
+// 4 ─ The ViewModel: Metro injects the use case, Metro registers it in the
+//     graph as @ContributesIntoMap so metroViewModel<T>() can resolve it.
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(RankingViewModel::class)
+@Inject
+class RankingViewModel(private val getRankingScore: GetRankingScore)
+    : MviViewModel<RankingUiState, RankingViewModel.Intent, RankingViewModel.Event>(RankingUiState()) {
+
+    override suspend fun handleIntent(intent: Intent) = when (intent) {
+        Intent.Load -> {
+            updateState { it.copy(isLoading = true) }
+            val ranking = getRankingScore.invoke()
+            updateState { it.copy(isLoading = false, entries = ranking) }
+        }
+    }
+}
+
+// 5 ─ The Compose screen reads state, dispatches Intents, never touches the VM
+//     directly. The first Load is fired from a LaunchedEffect — the VM's init
+//     stays side-effect-free so events fire only after a collector is attached.
+@Composable
+fun RankingScreen(viewModel: RankingViewModel = metroViewModel()) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { viewModel.dispatch(RankingViewModel.Intent.Load) }
+
+    if (uiState.isLoading) LoadingState() else RankingList(uiState.entries)
+}
+```
+
+**What changes per screen** is only the `UiState` data class, the `Intent` / `Event` hierarchies, and the `handleIntent` body. The base class — `dispatch`, `updateState`, `emit`, `currentState`, the `state`/`events` flows — is shared and unit-tested in [`MviViewModelTest`](app/src/test/java/com/alvaroquintana/adivinabandera/ui/mvi/MviViewModelTest.kt).
+
+**Assisted injection** is used by `GameViewModel` because it needs runtime parameters (`gameMode`, `forcedCountryPool`) that cannot be resolved from the graph: `@AssistedInject` + a `ManualViewModelAssistedFactory` interface, retrieved in Compose with `assistedMetroViewModel<GameViewModel, GameViewModel.Factory> { create(gameMode, ids) }`.
 
 ---
 
