@@ -1,0 +1,133 @@
+package com.alvaroquintana.adivinabandera.ui.profile
+
+import com.alvaroquintana.adivinabandera.MainDispatcherRule
+import com.alvaroquintana.adivinabandera.managers.AchievementManager
+import com.alvaroquintana.adivinabandera.managers.DailyChallengeManager
+import com.alvaroquintana.adivinabandera.managers.GameStatsManager
+import com.alvaroquintana.adivinabandera.managers.ProgressionManager
+import com.alvaroquintana.adivinabandera.managers.StreakManager
+import com.alvaroquintana.adivinabandera.managers.XpSyncManager
+import com.alvaroquintana.domain.StreakState
+import com.alvaroquintana.domain.challenge.ChallengeStats
+import com.alvaroquintana.usecases.GetUserGlobalRankUseCase
+import com.google.firebase.auth.FirebaseAuth
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class ProfileViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private lateinit var progressionManager: ProgressionManager
+    private lateinit var gameStatsManager: GameStatsManager
+    private lateinit var achievementManager: AchievementManager
+    private lateinit var getUserGlobalRankUseCase: GetUserGlobalRankUseCase
+    private lateinit var streakManager: StreakManager
+    private lateinit var dailyChallengeManager: DailyChallengeManager
+    private lateinit var xpSyncManager: XpSyncManager
+    private lateinit var viewModel: ProfileViewModel
+
+    @Before
+    fun setUp() {
+        // FirebaseAuth.getInstance() is called inside loadProfile(); stub it
+        // so the VM treats the user as anonymous (uid = null → rank = -1).
+        mockkStatic(FirebaseAuth::class)
+        val auth = mockk<FirebaseAuth>()
+        every { FirebaseAuth.getInstance() } returns auth
+        every { auth.currentUser } returns null
+
+        progressionManager = mockk(relaxed = true)
+        gameStatsManager = mockk(relaxed = true)
+        achievementManager = mockk(relaxed = true)
+        getUserGlobalRankUseCase = mockk(relaxed = true)
+        streakManager = mockk(relaxed = true)
+        dailyChallengeManager = mockk(relaxed = true)
+        xpSyncManager = mockk(relaxed = true)
+
+        coEvery { progressionManager.getNickname() } returns "alpha"
+        coEvery { progressionManager.getCurrentLevel() } returns 12
+        coEvery { progressionManager.getCurrentTitle() } returns "Veterano"
+        coEvery { progressionManager.getTotalXp() } returns 5_000
+        coEvery { progressionManager.getImageBase64() } returns ""
+        coEvery { gameStatsManager.getTotalGamesPlayed() } returns 80
+        coEvery { gameStatsManager.getTotalCorrectAnswers() } returns 600
+        coEvery { gameStatsManager.getAccuracy() } returns 0.75f
+        coEvery { gameStatsManager.getBestStreakEver() } returns 9
+        coEvery { gameStatsManager.getTotalPerfectGames() } returns 3
+        coEvery { gameStatsManager.getTotalTimePlayed() } returns 60_000L
+        coEvery { achievementManager.getUnlockedAchievements() } returns emptyList()
+        coEvery { streakManager.getStreakState() } returns StreakState()
+        coEvery { dailyChallengeManager.getChallengeStats() } returns ChallengeStats()
+
+        viewModel = ProfileViewModel(
+            progressionManager,
+            gameStatsManager,
+            achievementManager,
+            getUserGlobalRankUseCase,
+            streakManager,
+            dailyChallengeManager,
+            xpSyncManager
+        )
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(FirebaseAuth::class)
+    }
+
+    @Test
+    fun `Load intent populates state from manager snapshots`() = runTest {
+        viewModel.dispatch(ProfileViewModel.Intent.Load)
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+        assertFalse(state.isLoading)
+        assertEquals("alpha", state.nickname)
+        assertEquals(12, state.level)
+        assertEquals("Veterano", state.title)
+        assertEquals(5_000, state.totalXp)
+        assertEquals(80, state.totalGamesPlayed)
+        assertEquals(600, state.totalCorrectAnswers)
+        assertEquals(0.75f, state.accuracy)
+        assertEquals(9, state.bestStreakEver)
+        assertEquals(3, state.totalPerfectGames)
+        assertEquals(-1, state.globalRank) // anonymous user
+    }
+
+    @Test
+    fun `ChangeNickname persists, updates state and triggers XP sync`() = runTest {
+        // progressionManager / xpSyncManager are relaxed mocks, no stubbing needed
+        viewModel.dispatch(ProfileViewModel.Intent.ChangeNickname("beta"))
+        advanceUntilIdle()
+
+        coVerify { progressionManager.setNickname("beta") }
+        coVerify { xpSyncManager.syncPendingIfNeeded() }
+        assertEquals("beta", viewModel.state.value.nickname)
+    }
+
+    @Test
+    fun `SaveProfileImage persists the image and reflects it in state`() = runTest {
+        val newImage = "base64-bytes"
+
+        viewModel.dispatch(ProfileViewModel.Intent.SaveProfileImage(newImage))
+        advanceUntilIdle()
+
+        coVerify { progressionManager.setImageBase64(newImage) }
+        assertEquals(newImage, viewModel.state.value.imageBase64)
+    }
+}
