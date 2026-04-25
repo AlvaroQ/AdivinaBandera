@@ -36,10 +36,11 @@ fun XpLeaderboardScreen(
     viewModel: XpLeaderboardViewModel,
     onBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         Analytics.analyticsScreenViewed(Analytics.SCREEN_XP_LEADERBOARD)
+        viewModel.dispatch(XpLeaderboardViewModel.Intent.Load)
     }
 
     Box(
